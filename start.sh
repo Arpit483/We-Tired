@@ -1,0 +1,83 @@
+#!/bin/bash
+# Start VitalRadar stack
+# This script starts all components: Flask app, deep learning, GPS, and Firebase bridge
+
+cd "$(dirname "$0")"
+source venv/bin/activate
+
+echo "=========================================="
+echo "Starting VitalRadar System"
+echo "=========================================="
+echo ""
+
+# Check if Flask is already running
+if lsof -Pi :5050 -sTCP:LISTEN -t >/dev/null ; then
+    echo "[!] Flask is already running on port 5050"
+    echo "[*] Stopping existing Flask process..."
+    pkill -f "python.*app.py" || true
+    sleep 2
+fi
+
+# Start Flask app
+echo "[*] Starting Flask application..."
+python app.py > flask.log 2>&1 &
+FLASK_PID=$!
+echo "[✓] Flask started (PID: $FLASK_PID)"
+
+# Wait for Flask to be ready
+echo "[*] Waiting for Flask to be ready..."
+python wait_for_flask.py
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Flask failed to start. Check flask.log for details."
+    kill $FLASK_PID 2>/dev/null
+    exit 1
+fi
+echo "[✓] Flask is ready!"
+
+# Start deep learning detection
+echo "[*] Starting deep learning detection..."
+python deep.py > deep.log 2>&1 &
+DEEP_PID=$!
+echo "[✓] Deep learning started (PID: $DEEP_PID)"
+sleep 2
+
+# Start GPS module
+echo "[*] Starting GPS module..."
+python neo6m_runner.py > gps.log 2>&1 &
+GPS_PID=$!
+echo "[✓] GPS module started (PID: $GPS_PID)"
+sleep 2
+
+# Start Firebase bridge
+echo "[*] Starting Firebase bridge..."
+python firebase_bridge.py > firebase.log 2>&1 &
+FIREBASE_PID=$!
+echo "[✓] Firebase bridge started (PID: $FIREBASE_PID)"
+
+echo ""
+echo "=========================================="
+echo "All services started!"
+echo "=========================================="
+echo ""
+echo "Service PIDs:"
+echo "  Flask:    $FLASK_PID"
+echo "  Deep:     $DEEP_PID"
+echo "  GPS:      $GPS_PID"
+echo "  Firebase: $FIREBASE_PID"
+echo ""
+echo "Logs:"
+echo "  Flask:    flask.log"
+echo "  Deep:     deep.log"
+echo "  GPS:      gps.log"
+echo "  Firebase: firebase.log"
+echo ""
+echo "Access dashboard at: http://localhost:5050"
+echo ""
+echo "To stop all services: pkill -f 'python.*(app|deep|neo6m|firebase)'"
+echo ""
+
+# Save PIDs to file for easy stopping
+echo "$FLASK_PID $DEEP_PID $GPS_PID $FIREBASE_PID" > .pids
+
+# Wait for all background processes
+wait
