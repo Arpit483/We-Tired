@@ -9,8 +9,17 @@ Runs two independent detection loops in parallel.
 
 import serial
 import numpy as np
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+    class DummyNN:
+        class Module:
+            pass
+    nn = DummyNN()
+    torch = None
 import collections
 import time
 import argparse
@@ -147,6 +156,8 @@ def score_breathing_features(f):
 # =====================================================================================
 def load_model(path, device):
     try:
+        if not HAS_TORCH:
+            raise ImportError("PyTorch is not installed, falling back to FFT.")
         print(f"[+] Loading model: {path}")
         model = FastCNNLSTMModel()
         model.load_state_dict(torch.load(path, map_location=device))
@@ -340,7 +351,7 @@ def run_sensor(sensor_id, port, model, device):
 # MAIN (YOUR EXACT ORIGINAL CODE)
 # =====================================================================================
 def main():
-    device = torch.device("cpu")
+    device = torch.device("cpu") if HAS_TORCH else "cpu"
     model = load_model(Config.MODEL_PATH, device)
     
     tee_print("\n=== STARTING TWO LD2410 SENSORS ===\n")

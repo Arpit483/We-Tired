@@ -1,13 +1,25 @@
 flask>=2.3.0
 flask-sqlalchemy>=3.0.0
 flask-socketio>=5.3.0
-torch>=2.0.0
+
+# -------------------------------------------------------------
+# LIGHTWEIGHT ALTERNATIVES FOR RASPBERRY PI
+# -------------------------------------------------------------
+# PyTorch (~800MB+) is too large for the Pi. The deep_optimized.py 
+# script now automatically falls back to FFT-only mode if torch 
+# is missing, so you can safely SKIP installing it.
+# 
+# If you want Deep Learning inference on Pi, use one of these lighter runtimes:
+onnxruntime>=1.15.0 # (~15MB, Recommended, requires converting .pt model to .onnx)
+# tflite-runtime>=2.13.0 # (~2MB, Alternative, requires converting to .tflite)
+# 
+# Or if you MUST use torch, use the Pi CPU wheel: 
+# torch==2.0.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+# -------------------------------------------------------------
+
 numpy>=1.24.0
 scipy>=1.10.0
 requests>=2.31.0
 pyserial>=3.5
 psutil>=5.9.0
 eventlet>=0.33.3
-psutil
-eventlet
-recommend The Text him a day
