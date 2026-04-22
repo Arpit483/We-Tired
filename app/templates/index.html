@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VitalRadar Dual Sensor</title>
+  <style>
+    :root {
+      --bg-main: #121212;
+      --bg-panel: #1e1e1e;
+      --text-main: #ffffff;
+      --text-muted: #aaaaaa;
+      --green: #4ade80;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --border: #333333;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3 { margin: 0; }
+
+    /* Overall Banner */
+    .overall-banner {
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      border: 2px solid;
+    }
+
+    .banner-green { background: rgba(74, 222, 128, 0.1); border-color: var(--green); color: var(--green); }
+    .banner-amber { background: rgba(245, 158, 11, 0.1); border-color: var(--amber); color: var(--amber); }
+    .banner-red { background: rgba(239, 68, 68, 0.1); border-color: var(--red); color: var(--red); }
+
+    /* Sensor Panels */
+    .sensors-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    @media(max-width: 768px) {
+      .sensors-container { flex-direction: column; }
+    }
+
+    .sensor-panel {
+      flex: 1;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .sensor-title {
+      color: var(--text-muted);
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .status-badge {
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 18px;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+    }
+
+    .badge-green { background: rgba(74, 222, 128, 0.2); color: var(--green); border: 1px solid var(--green); }
+    .badge-red { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid var(--red); }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      width: 100%;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .metric-box {
+      background: rgba(0,0,0,0.3);
+      padding: 15px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .metric-val {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Terminal Panel */
+    .terminal-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      padding: 10px 15px;
+      background: rgba(0,0,0,0.5);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .terminal-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+
+    .btn-clear {
+      background: transparent;
+      border: 1px solid var(--text-muted);
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .btn-clear:hover { background: rgba(255,255,255,0.1); }
+
+    .terminal-output {
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #000000;
+      color: var(--green);
+    }
+
+    .terminal-output::-webkit-scrollbar { width: 8px; }
+    .terminal-output::-webkit-scrollbar-track { background: #111; }
+    .terminal-output::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- Overall Status Banner -->
+  <div id="overallBanner" class="overall-banner banner-red">
+    Waiting for data...
+  </div>
+
+  <!-- Sensors Grid -->
+  <div class="sensors-container">
+    
+    <!-- Left Sensor -->
+    <div class="sensor-panel">
+      <div class="sensor-title">LEFT SENSOR</div>
+      <div id="leftBadge" class="status-badge badge-red">NO PERSON</div>
+      <div class="metrics">
+        <div class="metric-box">
+          <div id="leftDist" class="metric-val">—</div>
+          <div class="metric-label">Distance (cm)</div>
+        </div>
+        <div class="metric-box">
+          <div id="leftConf" class="metric-val">—</div>
+          <div class="metric-label">Confidence</div>
+        </div>
+        <div class="metric-box">
+          <div id="leftVotes" class="metric-val">—</div>
+          <div class="metric-label">Votes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sensor -->
+    <div class="sensor-panel">
+      <div class="sensor-title">RIGHT SENSOR</div>
+      <div id="rightBadge" class="status-badge badge-red">NO PERSON</div>
+      <div class="metrics">
+        <div class="metric-box">
+          <div id="rightDist" class="metric-val">—</div>
+          <div class="metric-label">Distance (cm)</div>
+        </div>
+        <div class="metric-box">
+          <div id="rightConf" class="metric-val">—</div>
+          <div class="metric-label">Confidence</div>
+        </div>
+        <div class="metric-box">
+          <div id="rightVotes" class="metric-val">—</div>
+          <div class="metric-label">Votes</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Terminal Output -->
+  <div class="terminal-container">
+    <div class="terminal-header">
+      <div class="terminal-title">MODEL TERMINAL OUTPUT</div>
+      <button class="btn-clear" id="clearBtn">CLEAR</button>
+    </div>
+    <div class="terminal-output" id="terminalOutput"></div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const overallBanner = document.getElementById('overallBanner');
+    
+    const leftBadge = document.getElementById('leftBadge');
+    const leftDist = document.getElementById('leftDist');
+    const leftConf = document.getElementById('leftConf');
+    const leftVotes = document.getElementById('leftVotes');
+    
+    const rightBadge = document.getElementById('rightBadge');
+    const rightDist = document.getElementById('rightDist');
+    const rightConf = document.getElementById('rightConf');
+    const rightVotes = document.getElementById('rightVotes');
+    
+    const terminalOutput = document.getElementById('terminalOutput');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // Terminal clear
+    clearBtn.addEventListener('click', () => {
+      terminalOutput.innerHTML = '';
+    });
+
+    // 1. Terminal SSE
+    const terminalStream = new EventSource('/stream/terminal');
+    terminalStream.onmessage = function(e) {
+      if(e.data === ': keepalive') return;
+      try {
+        const data = JSON.parse(e.data);
+        if(data.line) {
+          const div = document.createElement('div');
+          div.textContent = data.line;
+          terminalOutput.appendChild(div);
+          
+          // Max 300 lines
+          while (terminalOutput.children.length > 300) {
+            terminalOutput.removeChild(terminalOutput.firstChild);
+          }
+          
+          // Auto scroll
+          terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+      } catch(err) {}
+    };
+
+    // 2. Sensors SSE
+    const sensorStream = new EventSource('/stream/sensors');
+    sensorStream.onmessage = function(e) {
+      if(e.data === ': keepalive') return;
+      try {
+        const payload = JSON.parse(e.data);
+        updateSensors(payload);
+      } catch(err) {}
+    };
+
+    function updateSensors(data) {
+      // Safe extraction
+      const s1Det = data.sensor1_detected || data.left_detected || false;
+      const s2Det = data.sensor2_detected || data.right_detected || false;
+      
+      const s1Dist = data.sensor1_distance || data.left_distance || 0;
+      const s1Conf = data.sensor1_confidence || data.left_confidence || 0;
+      const s1Votes = data.sensor1_votes || data.left_votes || 0;
+      
+      const s2Dist = data.sensor2_distance || data.right_distance || 0;
+      const s2Conf = data.sensor2_confidence || data.right_confidence || 0;
+      const s2Votes = data.sensor2_votes || data.right_votes || 0;
+
+      // Update Left Panel
+      if(s1Det) {
+        leftBadge.textContent = 'PERSON DETECTED';
+        leftBadge.className = 'status-badge badge-green';
+      } else {
+        leftBadge.textContent = 'NO PERSON';
+        leftBadge.className = 'status-badge badge-red';
+      }
+      leftDist.textContent = s1Dist.toFixed(1);
+      leftConf.textContent = (s1Conf * 100).toFixed(0) + '%';
+      leftVotes.textContent = s1Votes;
+
+      // Update Right Panel
+      if(s2Det) {
+        rightBadge.textContent = 'PERSON DETECTED';
+        rightBadge.className = 'status-badge badge-green';
+      } else {
+        rightBadge.textContent = 'NO PERSON';
+        rightBadge.className = 'status-badge badge-red';
+      }
+      rightDist.textContent = s2Dist.toFixed(1);
+      rightConf.textContent = (s2Conf * 100).toFixed(0) + '%';
+      rightVotes.textContent = s2Votes;
+
+      // Update Overall Banner
+      if(s1Det && s2Det) {
+        overallBanner.textContent = '✅ PERSON DETECTED — CENTER';
+        overallBanner.className = 'overall-banner banner-green';
+      } else if (s1Det && !s2Det) {
+        overallBanner.textContent = '⚠ DETECTED — MOVE RIGHT';
+        overallBanner.className = 'overall-banner banner-amber';
+      } else if (!s1Det && s2Det) {
+        overallBanner.textContent = '⚠ DETECTED — MOVE LEFT';
+        overallBanner.className = 'overall-banner banner-amber';
+      } else {
+        overallBanner.textContent = '❌ NO PERSON DETECTED';
+        overallBanner.className = 'overall-banner banner-red';
+      }
+    }
+  </script>
+</body>
+</html>

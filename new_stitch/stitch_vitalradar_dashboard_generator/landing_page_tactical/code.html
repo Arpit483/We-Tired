@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VITALRADAR_TACTICAL | MISSION_BRIEF</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "tertiary": "#ffffff",
+                  "surface-container-low": "#181d10",
+                  "secondary": "#ffb3af",
+                  "on-surface-variant": "#c1caad",
+                  "error-container": "#93000a",
+                  "secondary-fixed-dim": "#ffb3af",
+                  "primary-container": "#a6fa00",
+                  "on-primary-container": "#486f00",
+                  "on-secondary-fixed": "#410005",
+                  "on-secondary-container": "#ff9994",
+                  "tertiary-container": "#ffdea7",
+                  "on-primary-fixed-variant": "#324f00",
+                  "surface-tint": "#91db00",
+                  "on-secondary-fixed-variant": "#920418",
+                  "on-error-container": "#ffdad6",
+                  "on-surface": "#dfe5cf",
+                  "on-secondary": "#68000d",
+                  "tertiary-fixed-dim": "#fcbc32",
+                  "primary-fixed": "#a6fa00",
+                  "surface-container-lowest": "#0b1005",
+                  "background": "#101508",
+                  "inverse-on-surface": "#2d3224",
+                  "on-tertiary-container": "#835e00",
+                  "surface": "#101508",
+                  "surface-bright": "#353b2c",
+                  "outline-variant": "#414a34",
+                  "on-background": "#dfe5cf",
+                  "surface-container-high": "#262c1d",
+                  "on-primary": "#213600",
+                  "primary-fixed-dim": "#91db00",
+                  "inverse-surface": "#dfe5cf",
+                  "inverse-primary": "#436900",
+                  "surface-dim": "#101508",
+                  "on-error": "#690005",
+                  "outline": "#8b947a",
+                  "on-tertiary": "#412d00",
+                  "on-tertiary-fixed": "#271900",
+                  "surface-container-highest": "#313728",
+                  "error": "#ffb4ab",
+                  "secondary-container": "#920418",
+                  "surface-container": "#1c2114",
+                  "primary": "#ffffff",
+                  "secondary-fixed": "#ffdad7",
+                  "on-tertiary-fixed-variant": "#5e4200",
+                  "surface-variant": "#313728",
+                  "on-primary-fixed": "#111f00",
+                  "tertiary-fixed": "#ffdea7"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "density-medium": "8px",
+                  "unit": "4px",
+                  "margin": "12px",
+                  "density-high": "4px",
+                  "gutter": "8px",
+                  "container-padding": "16px"
+          },
+          "fontFamily": {
+                  "ui-label-reg": ["Inter"],
+                  "telemetry-sm": ["IBM Plex Mono"],
+                  "ui-label-bold": ["Inter"],
+                  "heading-caps": ["Inter"],
+                  "telemetry-lg": ["IBM Plex Mono"],
+                  "telemetry-md": ["IBM Plex Mono"]
+          },
+          "fontSize": {
+                  "ui-label-reg": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+                  "telemetry-sm": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+                  "ui-label-bold": ["12px", {"lineHeight": "14px", "fontWeight": "600"}],
+                  "heading-caps": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                  "telemetry-lg": ["18px", {"lineHeight": "20px", "fontWeight": "500"}],
+                  "telemetry-md": ["14px", {"lineHeight": "18px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 18px;
+    }
+    .technical-grid {
+      background-size: 32px 32px;
+      background-image: linear-gradient(to right, #1c2114 1px, transparent 1px), linear-gradient(to bottom, #1c2114 1px, transparent 1px);
+    }
+    .radar-sweep {
+      background: conic-gradient(from 0deg at 50% 50%, rgba(166, 250, 0, 0.15) 0deg, transparent 60deg);
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-on-surface overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TOP APP BAR -->
+<header class="flex justify-between items-center h-12 px-4 w-full bg-zinc-950 border-b border-zinc-800 fixed top-0 z-50">
+<div class="text-lg font-black text-lime-400 italic font-mono uppercase tracking-widest">
+      VITALRADAR_TACTICAL
+    </div>
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-lime-400" data-icon="sensors">sensors</span>
+<span class="material-symbols-outlined text-lime-400" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-lime-400" data-icon="battery_charging_full">battery_charging_full</span>
+</div>
+<div class="h-6 w-[1px] bg-zinc-800"></div>
+<div class="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+        SYSTEM_STATUS: <span class="text-lime-400">NOMINAL</span>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="flex h-screen w-full pt-12">
+<!-- LEFT SIDE: MISSION BRIEF -->
+<section class="w-1/2 h-full border-r border-zinc-800 flex flex-col justify-center p-16 bg-zinc-950 technical-grid relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-zinc-950/50 to-transparent pointer-events-none"></div>
+<!-- Metadata Row -->
+<div class="flex items-center space-x-3 mb-8">
+<span class="px-2 py-1 bg-lime-400 text-black font-mono text-[10px] font-bold">ALPHA_PROTOCOL</span>
+<span class="font-mono text-[10px] text-zinc-500 uppercase tracking-tighter">REF: EQ_RESPONSE_2024_09</span>
+</div>
+<!-- Headline -->
+<h1 class="text-8xl font-black text-lime-400 italic mb-6 leading-none tracking-tighter">
+        VITALRADAR
+      </h1>
+<p class="text-ui-label-reg font-ui-label-reg text-zinc-400 mb-12 max-w-lg leading-relaxed uppercase tracking-widest">
+        NEXT-GEN SUB-SURFACE CARDIAC DETECTION AND THERMAL MAPPING FOR EARTHQUAKE DISASTER RESPONSE. LOCATE BIOMETRIC SIGNATURES THROUGH 4M OF CONCRETE AND DEBRIS WITH MILLIMETER PRECISION.
+      </p>
+<!-- CTAs -->
+<div class="flex items-center space-x-4">
+<button class="bg-lime-400 text-black font-mono text-[12px] font-bold px-8 py-4 border border-lime-400 transition-all hover:bg-lime-500 active:translate-y-1">
+          OPEN DASHBOARD
+        </button>
+<button class="bg-transparent border border-lime-400 text-lime-400 font-mono text-[12px] font-bold px-8 py-4 transition-all hover:bg-lime-400/10 active:translate-y-1">
+          VIEW DOCS
+        </button>
+</div>
+<!-- Bottom Telemetry Readout -->
+<div class="absolute bottom-8 left-16 right-16 grid grid-cols-3 gap-8 border-t border-zinc-800 pt-8">
+<div>
+<div class="font-mono text-[9px] text-zinc-500 uppercase mb-1">RADAR_PENETRATION</div>
+<div class="font-telemetry-lg text-telemetry-lg text-on-surface">4.2 METERS</div>
+</div>
+<div>
+<div class="font-mono text-[9px] text-zinc-500 uppercase mb-1">SIGNAL_CONFIDENCE</div>
+<div class="font-telemetry-lg text-telemetry-lg text-lime-400">98.4%</div>
+</div>
+<div>
+<div class="font-mono text-[9px] text-zinc-500 uppercase mb-1">SYS_LATENCY</div>
+<div class="font-telemetry-lg text-telemetry-lg text-on-surface">0.12 MS</div>
+</div>
+</div>
+</section>
+<!-- RIGHT SIDE: TECHNICAL DIAGRAM -->
+<section class="w-1/2 h-full bg-black relative flex items-center justify-center overflow-hidden">
+<!-- Background Asset -->
+<div class="absolute inset-0 z-0 opacity-40">
+<img alt="Technical schematic diagram" class="w-full h-full object-cover" data-alt="top-down high contrast technical line drawing of a human figure trapped under stylized concrete blocks with radar cones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApbWvI8PRs3EPJZ-w9U5JOm4qyP-9PrUdTp0GyFtWYI6lj4vk6y6sAKd8LoDI4igXk0-r3xpkCohmR7zgWb1Gd-_nJ379_IbnJs4gaA652UYZdacquG95pD8f_c482rt54fOn0Up9y7UgaDO7XXHzZsSpz3NCodsGAJz7XraqTL4vkhl6bpdxlTTj7Hn-iAPCy6oh4V6AWn_MS6bRwuy8g7JArkf6gY7-I8ovA9QCUuH01GpSxmLnln4raftRH8FSXUdVlIvlTM6W4"/>
+</div>
+<!-- Tactical Overlays -->
+<div class="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
+<!-- Radar Cones S1/S2 Illustration -->
+<div class="relative w-[500px] h-[500px] border border-zinc-800 rounded-full flex items-center justify-center">
+<!-- Crosshair -->
+<div class="absolute w-full h-[1px] bg-zinc-800"></div>
+<div class="absolute h-full w-[1px] bg-zinc-800"></div>
+<!-- Radar Cones -->
+<div class="absolute top-1/4 left-1/4 w-48 h-48 border-l-2 border-t-2 border-lime-400 opacity-80">
+<div class="absolute -top-6 -left-2 font-mono text-[10px] text-lime-400">SCAN_UNIT: S1</div>
+</div>
+<div class="absolute bottom-1/4 right-1/4 w-48 h-48 border-r-2 border-b-2 border-lime-400 opacity-80">
+<div class="absolute -bottom-6 -right-2 font-mono text-[10px] text-lime-400">SCAN_UNIT: S2</div>
+</div>
+<!-- Convergence Zone -->
+<div class="w-16 h-16 border border-white flex items-center justify-center animate-pulse">
+<div class="w-2 h-2 bg-white rounded-full"></div>
+<div class="absolute -top-10 font-mono text-[10px] text-white bg-black px-2 py-1 border border-white">TARGET_DETECTED</div>
+</div>
+<!-- Circular Scanning Rings -->
+<div class="absolute w-[400px] h-[400px] border border-zinc-900 rounded-full"></div>
+<div class="absolute w-[300px] h-[300px] border border-zinc-900 rounded-full"></div>
+<div class="absolute w-full h-full radar-sweep rounded-full"></div>
+</div>
+<!-- Corner Telemetry Modules -->
+<div class="absolute top-8 left-8 border border-zinc-800 bg-zinc-950 p-4 w-48">
+<div class="font-mono text-[9px] text-zinc-500 uppercase mb-2">COORD_X: 45.223</div>
+<div class="h-1 w-full bg-zinc-900 overflow-hidden mb-4">
+<div class="h-full bg-lime-400 w-3/4"></div>
+</div>
+<div class="font-mono text-[9px] text-zinc-500 uppercase mb-2">COORD_Y: 12.009</div>
+<div class="h-1 w-full bg-zinc-900 overflow-hidden">
+<div class="h-full bg-lime-400 w-1/2"></div>
+</div>
+</div>
+<div class="absolute bottom-8 right-8 border border-zinc-800 bg-zinc-950 p-4 w-64">
+<div class="flex justify-between items-center mb-3">
+<div class="font-mono text-[10px] font-bold text-lime-400">BIOMETRIC_FEED</div>
+<div class="w-2 h-2 bg-lime-400 rounded-full"></div>
+</div>
+<div class="flex items-end space-x-1 h-12">
+<div class="w-1 h-4 bg-lime-400"></div>
+<div class="w-1 h-6 bg-lime-400"></div>
+<div class="w-1 h-10 bg-lime-400"></div>
+<div class="w-1 h-12 bg-lime-400"></div>
+<div class="w-1 h-8 bg-lime-400"></div>
+<div class="w-1 h-10 bg-lime-400"></div>
+<div class="w-1 h-6 bg-lime-400"></div>
+<div class="w-1 h-4 bg-lime-400"></div>
+<div class="w-1 h-8 bg-lime-400"></div>
+<div class="w-1 h-10 bg-lime-400"></div>
+<div class="w-1 h-4 bg-lime-400"></div>
+<div class="w-1 h-2 bg-lime-400"></div>
+</div>
+<div class="mt-2 font-mono text-[10px] text-zinc-500 text-center">HEART_RATE: 72 BPM</div>
+</div>
+</div>
+</section>
+</main>
+<!-- SIDE NAVBAR (Docked Left) -->
+<nav class="flex flex-col h-screen fixed left-0 top-0 border-r border-zinc-800 bg-zinc-950 w-64 z-[60] hidden group hover:flex transition-all">
+<div class="p-6 border-b border-zinc-800">
+<div class="text-lime-400 font-black font-mono text-sm">SYS_OPERATOR</div>
+<div class="text-zinc-500 font-mono text-[10px] uppercase tracking-tighter">SECTOR_07_ACTIVE</div>
+</div>
+<div class="flex-grow py-4">
+<a class="bg-lime-400 text-black p-3 w-full flex items-center space-x-3 font-mono text-[10px] font-bold uppercase transition-transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>DASHBOARD</span>
+</a>
+<a class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 font-mono text-[10px] font-bold uppercase hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span>LOGS</span>
+</a>
+<a class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 font-mono text-[10px] font-bold uppercase hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>DIAGNOSTICS</span>
+</a>
+<a class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 font-mono text-[10px] font-bold uppercase hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span>MISSION_CONFIG</span>
+</a>
+</div>
+<div class="p-4 border-t border-zinc-800">
+<button class="text-zinc-400 p-3 w-full flex items-center space-x-3 font-mono text-[10px] font-bold uppercase hover:bg-zinc-900 hover:text-lime-400">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+<span>POWER_OFF</span>
+</button>
+</div>
+</nav>
+<!-- Interactive Trigger for Hidden SideNav -->
+<div class="fixed left-0 top-12 h-full w-2 z-[70] cursor-pointer hover:bg-lime-400/20 group"></div>
+<!-- Decorative Scanline Overlay -->
+<div class="pointer-events-none fixed inset-0 z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] opacity-20"></div>
+</body></html>

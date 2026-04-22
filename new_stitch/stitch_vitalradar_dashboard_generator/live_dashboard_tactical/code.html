@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary": "#ffffff",
+            "surface-container-low": "#181d10",
+            "secondary": "#ffb3af",
+            "on-surface-variant": "#c1caad",
+            "error-container": "#93000a",
+            "secondary-fixed-dim": "#ffb3af",
+            "primary-container": "#a6fa00",
+            "on-primary-container": "#486f00",
+            "on-secondary-fixed": "#410005",
+            "on-secondary-container": "#ff9994",
+            "tertiary-container": "#ffdea7",
+            "on-primary-fixed-variant": "#324f00",
+            "surface-tint": "#91db00",
+            "on-secondary-fixed-variant": "#920418",
+            "on-error-container": "#ffdad6",
+            "on-surface": "#dfe5cf",
+            "on-secondary": "#68000d",
+            "tertiary-fixed-dim": "#fcbc32",
+            "primary-fixed": "#a6fa00",
+            "surface-container-lowest": "#0b1005",
+            "background": "#101508",
+            "inverse-on-surface": "#2d3224",
+            "on-tertiary-container": "#835e00",
+            "surface": "#101508",
+            "surface-bright": "#353b2c",
+            "outline-variant": "#414a34",
+            "on-background": "#dfe5cf",
+            "surface-container-high": "#262c1d",
+            "on-primary": "#213600",
+            "primary-fixed-dim": "#91db00",
+            "inverse-surface": "#dfe5cf",
+            "inverse-primary": "#436900",
+            "surface-dim": "#101508",
+            "on-error": "#690005",
+            "outline": "#8b947a",
+            "on-tertiary": "#412d00",
+            "on-tertiary-fixed": "#271900",
+            "surface-container-highest": "#313728",
+            "error": "#ffb4ab",
+            "secondary-container": "#920418",
+            "surface-container": "#1c2114",
+            "primary": "#ffffff",
+            "secondary-fixed": "#ffdad7",
+            "on-tertiary-fixed-variant": "#5e4200",
+            "surface-variant": "#313728",
+            "on-primary-fixed": "#111f00",
+            "tertiary-fixed": "#ffdea7"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "density-medium": "8px",
+            "unit": "4px",
+            "margin": "12px",
+            "density-high": "4px",
+            "gutter": "8px",
+            "container-padding": "16px"
+          },
+          "fontFamily": {
+            "ui-label-reg": ["Inter"],
+            "telemetry-sm": ["IBM Plex Mono"],
+            "ui-label-bold": ["Inter"],
+            "heading-caps": ["Inter"],
+            "telemetry-lg": ["IBM Plex Mono"],
+            "telemetry-md": ["IBM Plex Mono"]
+          },
+          "fontSize": {
+            "ui-label-reg": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+            "telemetry-sm": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+            "ui-label-bold": ["12px", {"lineHeight": "14px", "fontWeight": "600"}],
+            "heading-caps": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+            "telemetry-lg": ["18px", {"lineHeight": "20px", "fontWeight": "500"}],
+            "telemetry-md": ["14px", {"lineHeight": "18px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .technical-reticle {
+      background: radial-gradient(circle, transparent 40%, rgba(166, 250, 0, 0.05) 41%, transparent 70%);
+      border: 1px dashed rgba(166, 250, 0, 0.2);
+    }
+    .scan-line {
+      background: linear-gradient(to bottom, transparent, rgba(166, 250, 0, 0.1), transparent);
+      height: 20%;
+      width: 100%;
+      position: absolute;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-on-surface selection:bg-primary-container selection:text-on-primary-container overflow-hidden h-screen flex flex-col">
+<!-- TopAppBar from JSON -->
+<header class="flex justify-between items-center h-12 px-4 w-full bg-zinc-950 border-zinc-800 border-b shrink-0">
+<div class="flex items-center gap-4">
+<span class="text-lg font-black text-lime-400 italic font-mono uppercase tracking-widest">VITALRADAR_TACTICAL</span>
+<div class="h-4 w-px bg-zinc-800"></div>
+<nav class="flex gap-4">
+<span class="font-mono uppercase tracking-widest text-xs text-lime-400 border-b-2 border-lime-400 h-12 flex items-center">DASHBOARD</span>
+<span class="font-mono uppercase tracking-widest text-xs text-zinc-500 h-12 flex items-center hover:text-lime-300 transition-colors">LOGS</span>
+<span class="font-mono uppercase tracking-widest text-xs text-zinc-500 h-12 flex items-center hover:text-lime-300 transition-colors">DIAGNOSTICS</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-zinc-500">
+<span class="material-symbols-outlined text-sm">sensors</span>
+<span class="material-symbols-outlined text-sm">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-sm">battery_charging_full</span>
+</div>
+<div class="bg-zinc-900 border border-zinc-800 px-3 py-1 flex items-center">
+<span class="text-[10px] font-mono text-zinc-500 mr-2">SYS_READY</span>
+<div class="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar from JSON -->
+<aside class="flex flex-col h-full w-64 border-r border-zinc-800 bg-zinc-950 shrink-0">
+<div class="p-4 border-b border-zinc-800">
+<div class="text-lime-400 font-black font-mono text-[10px] uppercase">SYS_OPERATOR</div>
+<div class="text-zinc-500 font-mono text-[8px] uppercase tracking-tighter">SECTOR_07_ACTIVE</div>
+</div>
+<nav class="flex-1">
+<div class="bg-lime-400 text-black p-3 w-full flex items-center space-x-3 cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="dashboard">dashboard</span>
+<span class="font-mono text-[10px] font-bold uppercase">DASHBOARD</span>
+</div>
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+<span class="font-mono text-[10px] font-bold uppercase">LOGS</span>
+</div>
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="analytics">analytics</span>
+<span class="font-mono text-[10px] font-bold uppercase">DIAGNOSTICS</span>
+</div>
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-sm" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-mono text-[10px] font-bold uppercase">MISSION_CONFIG</span>
+</div>
+</nav>
+<div class="p-3 border-t border-zinc-800">
+<div class="text-zinc-400 p-2 w-full flex items-center space-x-3 hover:bg-red-900/20 hover:text-red-400 transition-colors cursor-pointer rounded">
+<span class="material-symbols-outlined text-sm" data-icon="power_settings_new">power_settings_new</span>
+<span class="font-mono text-[10px] font-bold uppercase">POWER_OFF</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col bg-[#0A0A0A] overflow-hidden">
+<!-- Top Grid: Live Operational Screen -->
+<div class="flex-1 grid grid-cols-12 gap-0 border-b border-zinc-800">
+<!-- Left: S1 LEFT (Lime) -->
+<section class="col-span-3 border-r border-zinc-800 p-4 flex flex-col justify-between bg-zinc-950/30">
+<header class="flex justify-between items-start border-b border-zinc-900 pb-2 mb-4">
+<div>
+<span class="block text-lime-400 font-mono text-[10px] font-bold tracking-widest">S1_PRIMARY_SENSOR</span>
+<span class="block text-zinc-600 font-mono text-[8px]">ID: VRT-0091-L</span>
+</div>
+<div class="px-2 py-0.5 bg-lime-400/10 border border-lime-400/30 text-lime-400 text-[8px] font-mono">LINK_UP</div>
+</header>
+<div class="flex-1 space-y-8">
+<div class="telemetry-module">
+<label class="text-zinc-500 font-mono text-[9px] uppercase tracking-tighter block mb-1">Target_Distance</label>
+<div class="flex items-baseline gap-1">
+<span class="font-telemetry-lg text-[48px] leading-none text-lime-400 font-bold tracking-tighter">142.84</span>
+<span class="text-lime-600 font-mono text-xs font-bold">m</span>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<label class="text-zinc-500 font-mono text-[9px] uppercase block mb-1">Signal_Confidence</label>
+<div class="h-3 w-full bg-zinc-900 border border-zinc-800 overflow-hidden flex">
+<div class="h-full bg-lime-400 shadow-[0_0_10px_rgba(163,250,0,0.5)]" style="width: 88%"></div>
+</div>
+<div class="flex justify-between mt-1">
+<span class="text-[8px] font-mono text-zinc-600">0%</span>
+<span class="text-[8px] font-mono text-lime-400">88.2% NOMINAL</span>
+<span class="text-[8px] font-mono text-zinc-600">100%</span>
+</div>
+</div>
+<div>
+<label class="text-zinc-500 font-mono text-[9px] uppercase block mb-1">Segmented_Voting</label>
+<div class="grid grid-cols-10 gap-1 h-4">
+<div class="bg-lime-400"></div>
+<div class="bg-lime-400"></div>
+<div class="bg-lime-400"></div>
+<div class="bg-lime-400"></div>
+<div class="bg-lime-400"></div>
+<div class="bg-lime-400"></div>
+<div class="bg-lime-400"></div>
+<div class="bg-zinc-800"></div>
+<div class="bg-zinc-800"></div>
+<div class="bg-zinc-800"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-2 border border-zinc-900 bg-zinc-900/50">
+<div class="text-[8px] font-mono text-zinc-400 mb-1">WAVEFORM_DELTA</div>
+<div class="h-8 flex items-end gap-0.5">
+<div class="w-full bg-lime-400/20 h-[40%]"></div>
+<div class="w-full bg-lime-400/40 h-[60%]"></div>
+<div class="w-full bg-lime-400/20 h-[30%]"></div>
+<div class="w-full bg-lime-400/60 h-[80%]"></div>
+<div class="w-full bg-lime-400/30 h-[50%]"></div>
+<div class="w-full bg-lime-400/50 h-[70%]"></div>
+<div class="w-full bg-lime-400/20 h-[45%]"></div>
+</div>
+</div>
+</section>
+<!-- Center: COMBINED STATUS (Cyan/White) -->
+<section class="col-span-6 relative flex flex-col p-4 bg-zinc-950 overflow-hidden">
+<div class="absolute inset-0 technical-reticle pointer-events-none opacity-50"></div>
+<div class="scan-line top-0 opacity-20"></div>
+<header class="flex justify-between items-start z-10">
+<div>
+<span class="block text-white font-mono text-xs font-bold tracking-[0.2em] uppercase">Tactical_Overlay_01</span>
+<span class="block text-zinc-500 font-mono text-[9px]">ACTIVE_MONITORING_MODE: FUSED_TELEMETRY</span>
+</div>
+<div class="text-right">
+<span class="block text-white font-mono text-[10px] font-bold">POS: 34.0522° N</span>
+<span class="block text-zinc-500 font-mono text-[9px]">118.2437° W</span>
+</div>
+</header>
+<!-- Central Reticle & Direction Indicator -->
+<div class="flex-1 flex flex-col items-center justify-center relative">
+<!-- Technical Reticle -->
+<div class="w-64 h-64 border-[0.5px] border-zinc-800 rounded-full flex items-center justify-center relative">
+<div class="absolute inset-0 border border-white/5 rounded-full animate-[spin_10s_linear_infinite]"></div>
+<div class="w-56 h-56 border-2 border-dashed border-cyan-400/30 rounded-full animate-[spin_20s_linear_infinite_reverse] flex items-center justify-center">
+<div class="w-48 h-48 border border-white/10 rounded-full flex items-center justify-center">
+<!-- Pulsing Core -->
+<div class="w-32 h-32 rounded-full border border-cyan-400/50 flex items-center justify-center bg-cyan-400/5 animate-pulse">
+<div class="text-center">
+<div class="text-cyan-400 font-mono text-[10px] font-bold tracking-widest mb-1">DETECTION</div>
+<div class="text-white font-telemetry-lg text-2xl font-black">99.8%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Crosshairs -->
+<div class="absolute w-full h-[1px] bg-white/10 top-1/2 left-0 -translate-y-1/2"></div>
+<div class="absolute h-full w-[1px] bg-white/10 left-1/2 top-0 -translate-x-1/2"></div>
+<!-- Direction Indicator -->
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center">
+<span class="material-symbols-outlined text-white text-base" style="font-variation-settings: 'FILL' 1;">expand_less</span>
+<span class="text-white font-mono text-[10px] font-black">● CENTER</span>
+</div>
+<div class="absolute top-1/2 -left-12 -translate-y-1/2 flex items-center">
+<span class="material-symbols-outlined text-zinc-700 text-base">navigate_before</span>
+<span class="text-zinc-700 font-mono text-[10px] font-black ml-1">← LEFT</span>
+</div>
+<div class="absolute top-1/2 -right-12 -translate-y-1/2 flex items-center">
+<span class="text-zinc-700 font-mono text-[10px] font-black mr-1">RIGHT →</span>
+<span class="material-symbols-outlined text-zinc-700 text-base">navigate_next</span>
+</div>
+</div>
+<!-- AVG Metrics Grid -->
+<div class="mt-12 grid grid-cols-3 gap-8 w-full px-8">
+<div class="border-t border-zinc-800 pt-2 text-center">
+<div class="text-zinc-500 font-mono text-[9px] uppercase mb-1">Avg_Velocity</div>
+<div class="text-white font-telemetry-md text-xl">4.2 <span class="text-[10px] text-zinc-500">km/h</span></div>
+</div>
+<div class="border-t border-zinc-800 pt-2 text-center">
+<div class="text-cyan-400 font-mono text-[9px] uppercase mb-1">Fused_Range</div>
+<div class="text-white font-telemetry-md text-xl">144.12 <span class="text-[10px] text-zinc-500">m</span></div>
+</div>
+<div class="border-t border-zinc-800 pt-2 text-center">
+<div class="text-zinc-500 font-mono text-[9px] uppercase mb-1">Error_Margin</div>
+<div class="text-white font-telemetry-md text-xl">±0.02 <span class="text-[10px] text-zinc-500">cm</span></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right: S2 RIGHT (Coral) -->
+<section class="col-span-3 border-l border-zinc-800 p-4 flex flex-col justify-between bg-zinc-950/30">
+<header class="flex justify-between items-start border-b border-zinc-900 pb-2 mb-4">
+<div class="text-right w-full">
+<span class="block text-[#FF5C5C] font-mono text-[10px] font-bold tracking-widest uppercase">S2_SECONDARY_SENSOR</span>
+<span class="block text-zinc-600 font-mono text-[8px]">ID: VRT-0091-R</span>
+</div>
+</header>
+<div class="flex-1 space-y-8 flex flex-col items-end">
+<div class="telemetry-module text-right">
+<label class="text-zinc-500 font-mono text-[9px] uppercase tracking-tighter block mb-1">Target_Distance</label>
+<div class="flex items-baseline justify-end gap-1">
+<span class="font-telemetry-lg text-[48px] leading-none text-[#FF5C5C] font-bold tracking-tighter">145.39</span>
+<span class="text-[#FF5C5C]/60 font-mono text-xs font-bold">m</span>
+</div>
+</div>
+<div class="space-y-4 w-full">
+<div>
+<label class="text-zinc-500 font-mono text-[9px] uppercase block mb-1 text-right">Signal_Confidence</label>
+<div class="h-3 w-full bg-zinc-900 border border-zinc-800 overflow-hidden flex flex-row-reverse">
+<div class="h-full bg-[#FF5C5C] shadow-[0_0_10px_rgba(255,92,92,0.3)]" style="width: 92%"></div>
+</div>
+<div class="flex justify-between mt-1">
+<span class="text-[8px] font-mono text-zinc-600">100%</span>
+<span class="text-[8px] font-mono text-[#FF5C5C]">92.4% CALIBRATED</span>
+<span class="text-[8px] font-mono text-zinc-600">0%</span>
+</div>
+</div>
+<div>
+<label class="text-zinc-500 font-mono text-[9px] uppercase block mb-1 text-right">Segmented_Voting</label>
+<div class="grid grid-cols-10 gap-1 h-4">
+<div class="bg-zinc-800"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+<div class="bg-[#FF5C5C]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-2 border border-zinc-900 bg-zinc-900/50">
+<div class="text-[8px] font-mono text-zinc-400 mb-1 text-right">WAVEFORM_DELTA</div>
+<div class="h-8 flex items-end gap-0.5 flex-row-reverse">
+<div class="w-full bg-[#FF5C5C]/20 h-[30%]"></div>
+<div class="w-full bg-[#FF5C5C]/40 h-[50%]"></div>
+<div class="w-full bg-[#FF5C5C]/20 h-[20%]"></div>
+<div class="w-full bg-[#FF5C5C]/60 h-[90%]"></div>
+<div class="w-full bg-[#FF5C5C]/30 h-[40%]"></div>
+<div class="w-full bg-[#FF5C5C]/50 h-[60%]"></div>
+<div class="w-full bg-[#FF5C5C]/20 h-[35%]"></div>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Terminal: Live Log -->
+<footer class="h-48 bg-black border-t border-zinc-800 p-3 font-mono flex flex-col">
+<div class="flex justify-between items-center mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-zinc-500">terminal</span>
+<span class="text-xs font-bold text-zinc-300 uppercase tracking-widest">System_Console_Output</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] text-zinc-600">BAUD_RATE: 115200</span>
+<span class="text-[10px] text-zinc-600">BUFFER_OK: 99.4%</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:01]</span> INITIALIZING_SENSOR_LINK... OK</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:02]</span> CALIBRATING_AZIMUTH_ALIGNMENT... COMPLETE</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:04]</span> S1_READY. STREAMING_DATA_PCK_77182</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:05]</span> S2_READY. STREAMING_DATA_PCK_77182</p>
+<p class="text-cyan-400 text-[10px] font-bold"><span class="text-white/20">[08:42:08]</span> COMBINED_TELEMETRY_LOCK: OBTAINED [DIST: 144.12m]</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:10]</span> UPDATING_RECOVERY_SECTOR_07...</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:12]</span> HEARBEAT_PULSE_NOMINAL: 60Hz</p>
+<p class="text-[#FF5C5C] text-[10px] font-bold"><span class="text-white/20">[08:42:15]</span> WARNING: S2_DRIFT_DETECTED (+0.04m) - AUTO-COMPENSATING...</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:16]</span> DRIFT_NULLIFIED. SYSTEM_STABLE.</p>
+<p class="text-zinc-500 text-[10px]"><span class="text-lime-400">[08:42:18]</span> MONITORING_ENVIRONMENTAL_INTERFERENCE: 0.02%</p>
+<p class="text-white text-[10px] animate-pulse">_CURSOR_IDLE_AWAITING_INPUT</p>
+</div>
+</footer>
+</main>
+</div>
+<!-- Decorative Overlay elements for "Rugged Tactical" feel -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none border-[12px] border-zinc-950/20 z-50"></div>
+<div class="fixed top-2 bottom-2 left-2 right-2 border border-zinc-800/10 pointer-events-none"></div>
+</body></html>

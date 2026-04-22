@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#ffffff",
+                    "surface-container-low": "#181d10",
+                    "secondary": "#ffb3af",
+                    "on-surface-variant": "#c1caad",
+                    "error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb3af",
+                    "primary-container": "#a6fa00",
+                    "on-primary-container": "#486f00",
+                    "on-secondary-fixed": "#410005",
+                    "on-secondary-container": "#ff9994",
+                    "tertiary-container": "#ffdea7",
+                    "on-primary-fixed-variant": "#324f00",
+                    "surface-tint": "#91db00",
+                    "on-secondary-fixed-variant": "#920418",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#dfe5cf",
+                    "on-secondary": "#68000d",
+                    "tertiary-fixed-dim": "#fcbc32",
+                    "primary-fixed": "#a6fa00",
+                    "surface-container-lowest": "#0b1005",
+                    "background": "#101508",
+                    "inverse-on-surface": "#2d3224",
+                    "on-tertiary-container": "#835e00",
+                    "surface": "#101508",
+                    "surface-bright": "#353b2c",
+                    "outline-variant": "#414a34",
+                    "on-background": "#dfe5cf",
+                    "surface-container-high": "#262c1d",
+                    "on-primary": "#213600",
+                    "primary-fixed-dim": "#91db00",
+                    "inverse-surface": "#dfe5cf",
+                    "inverse-primary": "#436900",
+                    "surface-dim": "#101508",
+                    "on-error": "#690005",
+                    "outline": "#8b947a",
+                    "on-tertiary": "#412d00",
+                    "on-tertiary-fixed": "#271900",
+                    "surface-container-highest": "#313728",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#920418",
+                    "surface-container": "#1c2114",
+                    "primary": "#ffffff",
+                    "secondary-fixed": "#ffdad7",
+                    "on-tertiary-fixed-variant": "#5e4200",
+                    "surface-variant": "#313728",
+                    "on-primary-fixed": "#111f00",
+                    "tertiary-fixed": "#ffdea7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "density-medium": "8px",
+                    "unit": "4px",
+                    "margin": "12px",
+                    "density-high": "4px",
+                    "gutter": "8px",
+                    "container-padding": "16px"
+            },
+            "fontFamily": {
+                    "ui-label-reg": ["Inter"],
+                    "telemetry-sm": ["IBM Plex Mono"],
+                    "ui-label-bold": ["Inter"],
+                    "heading-caps": ["Inter"],
+                    "telemetry-lg": ["IBM Plex Mono"],
+                    "telemetry-md": ["IBM Plex Mono"]
+            },
+            "fontSize": {
+                    "ui-label-reg": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+                    "telemetry-sm": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+                    "ui-label-bold": ["12px", {"lineHeight": "14px", "fontWeight": "600"}],
+                    "heading-caps": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "telemetry-lg": ["18px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "telemetry-md": ["14px", {"lineHeight": "18px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 18px;
+        }
+        .zebra-rows tr:nth-child(even) {
+            background-color: #141414;
+        }
+        .chart-grid {
+            background-image: linear-gradient(#2A2A2A 1px, transparent 1px), linear-gradient(90deg, #2A2A2A 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-ui-label-reg antialiased">
+<!-- TopAppBar from JSON -->
+<header class="flex justify-between items-center h-12 px-4 w-full bg-zinc-950 border-zinc-800 border-b fixed top-0 z-50">
+<div class="text-lg font-black text-lime-400 italic">VITALRADAR_TACTICAL</div>
+<div class="flex items-center space-x-6">
+<nav class="hidden md:flex items-center space-x-4 h-full">
+<span class="font-mono uppercase tracking-widest text-xs text-zinc-500 hover:bg-zinc-900 hover:text-lime-300 px-2 h-12 flex items-center transition-colors duration-75 active:bg-lime-900">SYSTEM_STATUS</span>
+<span class="font-mono uppercase tracking-widest text-xs text-lime-400 border-b-2 border-lime-400 px-2 h-12 flex items-center transition-colors duration-75 active:bg-lime-900">ANALYTICS</span>
+<span class="font-mono uppercase tracking-widest text-xs text-zinc-500 hover:bg-zinc-900 hover:text-lime-300 px-2 h-12 flex items-center transition-colors duration-75 active:bg-lime-900">MAP_OVR</span>
+</nav>
+<div class="flex items-center space-x-3 text-lime-400">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="material-symbols-outlined" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined" data-icon="battery_charging_full">battery_charging_full</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar from JSON -->
+<aside class="flex flex-col h-screen fixed left-0 top-0 border-r border-zinc-800 bg-zinc-950 w-64 hidden md:flex">
+<div class="p-4 border-b border-zinc-800 mt-12">
+<div class="text-lime-400 font-black font-mono text-[10px] uppercase">SYS_OPERATOR</div>
+<div class="text-zinc-500 font-mono text-[8px] tracking-tighter">SECTOR_07_ACTIVE</div>
+</div>
+<nav class="flex-1 overflow-y-auto">
+<a class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-mono text-[10px] font-bold uppercase">DASHBOARD</span>
+</a>
+<a class="bg-lime-400 text-black p-3 w-full flex items-center space-x-3 active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-mono text-[10px] font-bold uppercase">LOGS</span>
+</a>
+<a class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-mono text-[10px] font-bold uppercase">DIAGNOSTICS</span>
+</a>
+<a class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-mono text-[10px] font-bold uppercase">MISSION_CONFIG</span>
+</a>
+</nav>
+<div class="p-4 border-t border-zinc-800">
+<button class="text-zinc-400 p-3 w-full flex items-center space-x-3 hover:bg-zinc-900 hover:text-lime-400 transition-colors">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+<span class="font-mono text-[10px] font-bold uppercase">POWER_OFF</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-12 min-h-screen">
+<div class="p-gutter lg:p-container-padding flex flex-col gap-gutter">
+<!-- Header Section with Filter -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-800 pb-2">
+<h1 class="font-heading-caps text-heading-caps text-on-surface flex items-center gap-2">
+<span class="w-1 h-4 bg-lime-400"></span>
+                    DETECTION_LOG_ANALYSIS
+                </h1>
+<div class="flex mt-4 md:mt-0 bg-surface-container-low border border-zinc-800 p-[1px]">
+<button class="px-3 py-1 font-telemetry-sm text-telemetry-sm text-lime-400 border-b-2 border-lime-400 bg-surface-container-highest">15M</button>
+<button class="px-3 py-1 font-telemetry-sm text-telemetry-sm text-zinc-500 hover:text-lime-400">1H</button>
+<button class="px-3 py-1 font-telemetry-sm text-telemetry-sm text-zinc-500 hover:text-lime-400">6H</button>
+<button class="px-3 py-1 font-telemetry-sm text-telemetry-sm text-zinc-500 hover:text-lime-400">24H</button>
+</div>
+</div>
+<!-- Top Row: Stat Blocks -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Stat Block 1 -->
+<div class="bg-surface-container border border-zinc-800 border-t-2 border-t-lime-400 p-4 relative overflow-hidden">
+<div class="text-[8px] font-mono text-zinc-500 uppercase mb-1">DETECTIONS_TODAY</div>
+<div class="font-telemetry-lg text-telemetry-lg text-lime-400">1,284</div>
+<div class="flex items-center gap-1 mt-2">
+<span class="text-[9px] font-mono text-lime-400">+12.4%</span>
+<span class="material-symbols-outlined text-lime-400 !text-[12px]" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+<!-- Stat Block 2 -->
+<div class="bg-surface-container border border-zinc-800 border-t-2 border-t-lime-400 p-4">
+<div class="text-[8px] font-mono text-zinc-500 uppercase mb-1">S1/S2_DETS</div>
+<div class="flex justify-between items-end">
+<div>
+<span class="font-telemetry-lg text-telemetry-lg text-tertiary">842</span>
+<span class="text-[10px] text-zinc-500 ml-1">/</span>
+<span class="font-telemetry-md text-telemetry-md text-tertiary">442</span>
+</div>
+<div class="text-[9px] font-mono text-zinc-400">RATIO 1.9:1</div>
+</div>
+</div>
+<!-- Stat Block 3 -->
+<div class="bg-surface-container border border-zinc-800 border-t-2 border-t-secondary p-4">
+<div class="text-[8px] font-mono text-zinc-500 uppercase mb-1">ANOMALIES_DETECTED</div>
+<div class="font-telemetry-lg text-telemetry-lg text-secondary">009</div>
+<div class="flex items-center gap-1 mt-2">
+<span class="text-[9px] font-mono text-secondary">CRITICAL_LEVEL_3</span>
+</div>
+</div>
+</div>
+<!-- Main Chart Area -->
+<div class="bg-surface-container-low border border-zinc-800 p-4 h-[400px] relative flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-lime-400"></span>
+<span class="text-[10px] font-mono uppercase text-zinc-400">Primary_S1</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary"></span>
+<span class="text-[10px] font-mono uppercase text-zinc-400">Secondary_S2</span>
+</div>
+</div>
+<div class="text-[10px] font-mono text-zinc-600">LIVE_FEED: 144Hz</div>
+</div>
+<div class="flex-1 relative chart-grid border border-zinc-800 overflow-hidden">
+<!-- Breathing Zone Shaded Band -->
+<div class="absolute top-[30%] h-[40%] w-full bg-lime-400/5 border-y border-lime-400/10 flex items-center px-4">
+<span class="text-[8px] font-mono text-lime-400/40 rotate-90 origin-left">BREATHING_ZONE</span>
+</div>
+<!-- SVG Chart Layer -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none">
+<!-- S1 Lime Line (Static Visualization Representation) -->
+<path d="M0,280 L50,260 L100,290 L150,220 L200,240 L250,200 L300,210 L350,180 L400,220 L450,190 L500,250 L550,230 L600,210 L650,220 L700,200 L750,210 L800,190 L850,205 L900,180 L1000,190 L1200,210" fill="none" stroke="#a6fa00" stroke-width="1.5"></path>
+<!-- S2 Coral Line -->
+<path d="M0,320 L50,300 L100,310 L150,340 L200,310 L250,330 L300,300 L350,320 L400,350 L450,310 L500,330 L550,305 L600,315 L650,290 L700,300 L750,280 L800,295 L850,270 L900,290 L1000,280 L1200,270" fill="none" stroke="#ffb3af" stroke-dasharray="4 2" stroke-width="1.5"></path>
+<!-- Target Marker -->
+<circle cx="650" cy="220" fill="#a6fa00" r="4"></circle>
+<line stroke="#a6fa00" stroke-dasharray="2 2" stroke-width="1" x1="650" x2="650" y1="0" y2="400"></line>
+</svg>
+<!-- Overlay Labels -->
+<div class="absolute top-4 right-4 bg-zinc-950/80 border border-zinc-800 p-2 font-mono text-[9px]">
+<div class="text-lime-400">S1: 42.8 m/s</div>
+<div class="text-secondary">S2: 12.4 m/s</div>
+<div class="text-zinc-500 mt-1">LAT: 40.7128° N</div>
+</div>
+</div>
+<!-- X-Axis Labels -->
+<div class="flex justify-between mt-2 px-2 font-mono text-[8px] text-zinc-600">
+<span>T-15:00</span>
+<span>T-12:00</span>
+<span>T-09:00</span>
+<span>T-06:00</span>
+<span>T-03:00</span>
+<span>NOW</span>
+</div>
+</div>
+<!-- Bottom Table Section -->
+<div class="bg-surface-container border border-zinc-800">
+<div class="px-4 py-2 bg-zinc-900 border-b border-zinc-800 flex justify-between items-center">
+<span class="font-heading-caps text-[10px] text-zinc-400 uppercase">RAW_TELEMETRY_LOG</span>
+<span class="material-symbols-outlined text-zinc-500" data-icon="download">download</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-mono text-[10px] zebra-rows">
+<thead>
+<tr class="text-zinc-500 border-b border-zinc-800">
+<th class="p-3 font-bold">TIMESTAMP</th>
+<th class="p-3 font-bold">DIST (M)</th>
+<th class="p-3 font-bold">CONF (%)</th>
+<th class="p-3 font-bold">VOTES</th>
+<th class="p-3 font-bold">STATUS</th>
+<th class="p-3 font-bold text-right">DIR</th>
+</tr>
+</thead>
+<tbody class="text-zinc-300">
+<tr class="border-b border-zinc-900/50">
+<td class="p-3">14:22:01.042</td>
+<td class="p-3">1,244.02</td>
+<td class="p-3 text-lime-400">99.4</td>
+<td class="p-3">12/12</td>
+<td class="p-3">
+<span class="inline-block w-2 h-2 bg-lime-400 mr-2"></span>LOCKED
+                                </td>
+<td class="p-3 text-right">284° NW</td>
+</tr>
+<tr class="border-b border-zinc-900/50">
+<td class="p-3">14:22:00.891</td>
+<td class="p-3">1,245.10</td>
+<td class="p-3 text-lime-400">98.2</td>
+<td class="p-3">11/12</td>
+<td class="p-3">
+<span class="inline-block w-2 h-2 bg-lime-400 mr-2"></span>LOCKED
+                                </td>
+<td class="p-3 text-right">284° NW</td>
+</tr>
+<tr class="border-b border-zinc-900/50">
+<td class="p-3">14:21:59.221</td>
+<td class="p-3">1,248.55</td>
+<td class="p-3 text-secondary">42.1</td>
+<td class="p-3">04/12</td>
+<td class="p-3">
+<span class="inline-block w-2 h-2 bg-secondary mr-2"></span>UNSTABLE
+                                </td>
+<td class="p-3 text-right">285° NW</td>
+</tr>
+<tr class="border-b border-zinc-900/50">
+<td class="p-3">14:21:58.004</td>
+<td class="p-3">1,250.01</td>
+<td class="p-3 text-lime-400">91.0</td>
+<td class="p-3">10/12</td>
+<td class="p-3">
+<span class="inline-block w-2 h-2 bg-lime-400 mr-2"></span>LOCKED
+                                </td>
+<td class="p-3 text-right">286° NW</td>
+</tr>
+<tr class="border-b border-zinc-900/50">
+<td class="p-3">14:21:57.442</td>
+<td class="p-3">0,000.00</td>
+<td class="p-3 text-on-error">0.0</td>
+<td class="p-3">00/12</td>
+<td class="p-3">
+<span class="inline-block w-2 h-2 bg-error mr-2"></span>DROPPED
+                                </td>
+<td class="p-3 text-right">---</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Asymmetric Bento-style Details Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<div class="lg:col-span-8 bg-surface-container border border-zinc-800 p-4">
+<div class="flex items-start justify-between mb-4">
+<div>
+<h3 class="text-ui-label-bold font-ui-label-bold text-on-surface uppercase mb-1">Spectral Signature Analysis</h3>
+<p class="text-[10px] text-zinc-500 font-mono">HASH: 0x92f...a12</p>
+</div>
+<span class="material-symbols-outlined text-zinc-700" data-icon="waves">waves</span>
+</div>
+<div class="grid grid-cols-4 h-32 gap-1 items-end">
+<div class="bg-lime-900/40 h-[40%] border-t border-lime-400/50"></div>
+<div class="bg-lime-900/40 h-[80%] border-t border-lime-400/50"></div>
+<div class="bg-lime-900/40 h-[60%] border-t border-lime-400/50"></div>
+<div class="bg-secondary/20 h-[95%] border-t border-secondary"></div>
+</div>
+</div>
+<div class="lg:col-span-4 bg-zinc-950 border border-zinc-800 p-4 relative overflow-hidden group cursor-crosshair">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-lime-400" data-icon="gps_fixed">gps_fixed</span>
+</div>
+<h3 class="text-ui-label-bold font-ui-label-bold text-on-surface uppercase mb-4">Targeting_Cam</h3>
+<div class="relative w-full aspect-square bg-zinc-900 border border-zinc-800 overflow-hidden">
+<img alt="Satellite view" class="w-full h-full object-cover opacity-40 grayscale" data-alt="top-down satellite thermal imagery of a remote industrial complex at night with glowing heat signatures and digital UI overlays" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjhGBuYUrNXr2IzyYa-7MS99FprMpDXIjq2ah9JXiNx4tjlbgmAn-ZK9hHdyXgT8G_SJpvjNF7y_sSAQbX0G_VXvsVYPW5BKTynhmPvIyP6p1QzlqHe-qmPjtb304-3Xw99fc57mzTKXXI89XDzBC7pNzy3vHdcngRS03Ubb1IUhn6dG5Z1f9D9YEZs88DR1AuvgyrJpVfKcjMoPjgDMPWhOCeFzVha2F7a7Mw2L4a3rjOXt1nAozSW4NYTEloIaPmxEbTYh8v49eC"/>
+<!-- Crosshairs -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-full h-[1px] bg-lime-400/30"></div>
+<div class="h-full w-[1px] bg-lime-400/30"></div>
+<div class="absolute w-12 h-12 border border-lime-400/50 rounded-full"></div>
+<div class="absolute w-1 h-1 bg-lime-400"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB Suppression: On analytics/details pages, FAB is suppressed as per instructions -->
+</body></html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #101508;
+            color: #dfe5cf;
+            font-family: 'Inter', sans-serif;
+        }
+        .segmented-bar-unit {
+            height: 8px;
+            width: 4px;
+            margin-right: 2px;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#ffffff",
+                    "surface-container-low": "#181d10",
+                    "secondary": "#ffb3af",
+                    "on-surface-variant": "#c1caad",
+                    "error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb3af",
+                    "primary-container": "#a6fa00",
+                    "on-primary-container": "#486f00",
+                    "on-secondary-fixed": "#410005",
+                    "on-secondary-container": "#ff9994",
+                    "tertiary-container": "#ffdea7",
+                    "on-primary-fixed-variant": "#324f00",
+                    "surface-tint": "#91db00",
+                    "on-secondary-fixed-variant": "#920418",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#dfe5cf",
+                    "on-secondary": "#68000d",
+                    "tertiary-fixed-dim": "#fcbc32",
+                    "primary-fixed": "#a6fa00",
+                    "surface-container-lowest": "#0b1005",
+                    "background": "#101508",
+                    "inverse-on-surface": "#2d3224",
+                    "on-tertiary-container": "#835e00",
+                    "surface": "#101508",
+                    "surface-bright": "#353b2c",
+                    "outline-variant": "#414a34",
+                    "on-background": "#dfe5cf",
+                    "surface-container-high": "#262c1d",
+                    "on-primary": "#213600",
+                    "primary-fixed-dim": "#91db00",
+                    "inverse-surface": "#dfe5cf",
+                    "inverse-primary": "#436900",
+                    "surface-dim": "#101508",
+                    "on-error": "#690005",
+                    "outline": "#8b947a",
+                    "on-tertiary": "#412d00",
+                    "on-tertiary-fixed": "#271900",
+                    "surface-container-highest": "#313728",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#920418",
+                    "surface-container": "#1c2114",
+                    "primary": "#ffffff",
+                    "secondary-fixed": "#ffdad7",
+                    "on-tertiary-fixed-variant": "#5e4200",
+                    "surface-variant": "#313728",
+                    "on-primary-fixed": "#111f00",
+                    "tertiary-fixed": "#ffdea7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "density-medium": "8px",
+                    "unit": "4px",
+                    "margin": "12px",
+                    "density-high": "4px",
+                    "gutter": "8px",
+                    "container-padding": "16px"
+            },
+            "fontFamily": {
+                    "ui-label-reg": ["Inter"],
+                    "telemetry-sm": ["IBM Plex Mono"],
+                    "ui-label-bold": ["Inter"],
+                    "heading-caps": ["Inter"],
+                    "telemetry-lg": ["IBM Plex Mono"],
+                    "telemetry-md": ["IBM Plex Mono"]
+            },
+            "fontSize": {
+                    "ui-label-reg": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+                    "telemetry-sm": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
+                    "ui-label-bold": ["12px", {"lineHeight": "14px", "fontWeight": "600"}],
+                    "heading-caps": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "telemetry-lg": ["18px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "telemetry-md": ["14px", {"lineHeight": "18px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="flex flex-col h-screen overflow-hidden selection:bg-primary-container selection:text-black">
+<!-- Top Navigation Anchor -->
+<header class="flex justify-between items-center h-12 px-4 w-full bg-zinc-950 border-b border-zinc-800 shrink-0">
+<div class="flex items-center space-x-4">
+<span class="text-lg font-black text-lime-400 italic tracking-tighter">VITALRADAR_TACTICAL</span>
+<div class="h-4 w-px bg-zinc-800"></div>
+<nav class="flex space-x-6 h-full items-center">
+<a class="font-mono uppercase tracking-widest text-xs text-zinc-500 hover:bg-zinc-900 hover:text-lime-300 transition-colors px-2 py-1" href="#">NETWORK</a>
+<a class="font-mono uppercase tracking-widest text-xs text-lime-400 border-b-2 border-lime-400 px-2 py-1 h-full flex items-center" href="#">DIAGNOSTICS</a>
+<a class="font-mono uppercase tracking-widest text-xs text-zinc-500 hover:bg-zinc-900 hover:text-lime-300 transition-colors px-2 py-1" href="#">MISSION_CONFIG</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3 text-lime-400">
+<span class="material-symbols-outlined text-[18px]" data-icon="sensors">sensors</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="battery_charging_full">battery_charging_full</span>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Side Navigation Anchor -->
+<aside class="hidden md:flex flex-col h-full w-64 border-r border-zinc-800 bg-zinc-950 shrink-0">
+<div class="p-4 border-b border-zinc-900">
+<div class="text-lime-400 font-black font-mono text-sm">SYS_OPERATOR</div>
+<div class="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">SECTOR_07_ACTIVE</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<div class="bg-lime-400 text-black p-3 w-full flex items-center space-x-3 transition-transform active:translate-x-1 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-mono text-[10px] font-bold uppercase">DASHBOARD</span>
+</div>
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-mono text-[10px] font-bold uppercase">LOGS</span>
+</div>
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-mono text-[10px] font-bold uppercase">DIAGNOSTICS</span>
+</div>
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 border-b border-zinc-900 hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-mono text-[10px] font-bold uppercase">MISSION_CONFIG</span>
+</div>
+</div>
+<div class="border-t border-zinc-900">
+<div class="text-zinc-400 p-3 w-full flex items-center space-x-3 hover:bg-zinc-900 hover:text-lime-400 transition-transform active:translate-x-1 cursor-pointer">
+<span class="material-symbols-outlined text-error" data-icon="power_settings_new">power_settings_new</span>
+<span class="font-mono text-[10px] font-bold uppercase">POWER_OFF</span>
+</div>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 flex flex-col bg-background p-3 overflow-hidden">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
+<!-- Left Panel: RPi4 Hardware Status -->
+<section class="border border-zinc-800 bg-surface-container-lowest flex flex-col">
+<div class="p-2 border-b border-zinc-800 flex justify-between items-center bg-surface-container-low">
+<span class="font-heading-caps text-heading-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-lime-400" data-icon="developer_board">developer_board</span>
+                            RPI4_NODE_01
+                        </span>
+<span class="text-telemetry-sm font-telemetry-sm text-lime-400 bg-zinc-900 px-2 py-0.5 border border-zinc-700">ONLINE</span>
+</div>
+<div class="p-4 space-y-6 flex-1 overflow-y-auto">
+<!-- Segmented Bars for CPU -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="font-ui-label-bold text-ui-label-bold text-on-surface-variant">CPU_LOAD [4_CORE]</label>
+<span class="font-telemetry-md text-telemetry-md text-lime-400">42.8%</span>
+</div>
+<div class="flex gap-[2px]">
+<!-- Active Segments -->
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<!-- Inactive Segments -->
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+</div>
+</div>
+<!-- Segmented Bars for RAM -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="font-ui-label-bold text-ui-label-bold text-on-surface-variant">RAM_USAGE [8GB]</label>
+<span class="font-telemetry-md text-telemetry-md text-lime-400">3.12GB / 39%</span>
+</div>
+<div class="flex gap-[2px]">
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-lime-400"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+<div class="h-4 w-2 bg-zinc-900 border border-zinc-800"></div>
+</div>
+</div>
+<!-- Temperature Bar (Color Shifting) -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="font-ui-label-bold text-ui-label-bold text-on-surface-variant">CORE_TEMP</label>
+<span class="font-telemetry-md text-telemetry-md text-amber-500">58.4°C</span>
+</div>
+<div class="h-2 w-full bg-zinc-900 border border-zinc-800 relative">
+<div class="h-full bg-gradient-to-r from-lime-400 via-amber-400 to-secondary w-[58%]"></div>
+</div>
+</div>
+<!-- Port Status Table -->
+<div class="space-y-2 pt-4">
+<label class="font-ui-label-bold text-ui-label-bold text-on-surface-variant uppercase">I/O_BUS_STATUS</label>
+<table class="w-full text-left border-collapse">
+<thead class="bg-zinc-900 border border-zinc-800">
+<tr>
+<th class="p-2 font-heading-caps text-[10px] text-zinc-500">DEVICE_ID</th>
+<th class="p-2 font-heading-caps text-[10px] text-zinc-500">BAUD</th>
+<th class="p-2 font-heading-caps text-[10px] text-zinc-500 text-right">STATUS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-x border-b border-zinc-800 bg-[#141414]">
+<td class="p-2 font-telemetry-sm text-on-surface">/dev/ttyUSB0</td>
+<td class="p-2 font-telemetry-sm text-zinc-400">115200</td>
+<td class="p-2 text-right"><span class="inline-block w-2 h-2 bg-lime-400"></span></td>
+</tr>
+<tr class="border-x border-b border-zinc-800">
+<td class="p-2 font-telemetry-sm text-on-surface">/dev/ttyUSB1</td>
+<td class="p-2 font-telemetry-sm text-zinc-400">9600</td>
+<td class="p-2 text-right"><span class="inline-block w-2 h-2 bg-secondary"></span></td>
+</tr>
+<tr class="border-x border-b border-zinc-800 bg-[#141414]">
+<td class="p-2 font-telemetry-sm text-on-surface">/dev/video0</td>
+<td class="p-2 font-telemetry-sm text-zinc-400">RAW_30</td>
+<td class="p-2 text-right"><span class="inline-block w-2 h-2 bg-lime-400"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Right Panel: Model Pipeline Info -->
+<section class="border border-zinc-800 bg-surface-container-lowest flex flex-col">
+<div class="p-2 border-b border-zinc-800 flex justify-between items-center bg-surface-container-low">
+<span class="font-heading-caps text-heading-caps text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-lime-400" data-icon="hub">hub</span>
+                            MODEL_PIPELINE_VX
+                        </span>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 bg-on-primary-container text-primary-container text-[10px] font-bold font-mono border border-primary-container">FFT_ACTIVE</span>
+<span class="px-2 py-0.5 bg-zinc-900 text-lime-400 text-[10px] font-bold font-mono border border-zinc-700">DL_CONF_HI</span>
+</div>
+</div>
+<div class="p-4 space-y-6 flex-1 overflow-y-auto">
+<!-- Pipeline Visualization Placeholder -->
+<div class="border border-zinc-800 bg-zinc-950 p-4 relative h-32 flex items-center justify-center">
+<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#a6fa00 1px, transparent 1px); background-size: 10px 10px;"></div>
+<div class="flex items-center space-x-4 z-10">
+<div class="w-12 h-12 border border-lime-400 flex items-center justify-center bg-zinc-900">
+<span class="text-on-surface text-[10px] font-bold font-mono">CNN</span>
+</div>
+<span class="material-symbols-outlined text-zinc-700" data-icon="arrow_forward">arrow_forward</span>
+<div class="w-12 h-12 border border-lime-400 flex items-center justify-center bg-zinc-900">
+<span class="text-on-surface text-[10px] font-bold font-mono">LSTM</span>
+</div>
+<span class="material-symbols-outlined text-zinc-700" data-icon="arrow_forward">arrow_forward</span>
+<div class="w-12 h-12 border border-secondary flex items-center justify-center bg-zinc-900">
+<span class="text-secondary text-[10px] font-bold font-mono">OUT</span>
+</div>
+</div>
+</div>
+<!-- Technical Config Table -->
+<div class="space-y-2">
+<label class="font-ui-label-bold text-ui-label-bold text-on-surface-variant uppercase">HYPER_PARAMETERS</label>
+<div class="grid grid-cols-2 gap-px bg-zinc-800 border border-zinc-800">
+<div class="bg-zinc-950 p-3 flex flex-col">
+<span class="text-[9px] text-zinc-500 font-mono">WINDOW_SIZE</span>
+<span class="text-telemetry-lg font-telemetry-lg text-on-surface">1024_MS</span>
+</div>
+<div class="bg-zinc-950 p-3 flex flex-col">
+<span class="text-[9px] text-zinc-500 font-mono">THRESHOLD</span>
+<span class="text-telemetry-lg font-telemetry-lg text-on-surface">0.825</span>
+</div>
+<div class="bg-zinc-950 p-3 flex flex-col">
+<span class="text-[9px] text-zinc-500 font-mono">STRIDE_LEN</span>
+<span class="text-telemetry-lg font-telemetry-lg text-on-surface">256</span>
+</div>
+<div class="bg-zinc-950 p-3 flex flex-col">
+<span class="text-[9px] text-zinc-500 font-mono">LATENCY_P99</span>
+<span class="text-telemetry-lg font-telemetry-lg text-lime-400">12MS</span>
+</div>
+</div>
+</div>
+<!-- Inference Log -->
+<div class="space-y-2">
+<label class="font-ui-label-bold text-ui-label-bold text-on-surface-variant uppercase">LIVE_INFERENCE_FEED</label>
+<div class="bg-zinc-950 border border-zinc-800 font-mono text-[10px] p-2 h-32 overflow-y-hidden text-zinc-400">
+<div class="flex gap-2"><span class="text-zinc-600">[14:22:01.03]</span> PREDICT: CLASS_B (0.94)</div>
+<div class="flex gap-2"><span class="text-zinc-600">[14:22:01.28]</span> PREDICT: CLASS_B (0.91)</div>
+<div class="flex gap-2 text-lime-400"><span class="text-zinc-600">[14:22:01.54]</span> PREDICT: CLASS_A (0.88) *ALERT*</div>
+<div class="flex gap-2"><span class="text-zinc-600">[14:22:01.79]</span> PREDICT: CLASS_B (0.95)</div>
+<div class="flex gap-2"><span class="text-zinc-600">[14:22:02.04]</span> PREDICT: IDLE (0.99)</div>
+<div class="flex gap-2 animate-pulse text-primary-container"><span class="text-zinc-600">[14:22:02.29]</span> RUNNING...</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Action Bar -->
+<footer class="mt-3 flex gap-3 h-14">
+<button class="flex-1 bg-tertiary-fixed-dim text-black font-heading-caps flex items-center justify-center gap-2 border border-tertiary-fixed-dim hover:bg-tertiary-container transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+                    RESTART_MODULE
+                </button>
+<button class="flex-1 bg-secondary text-on-secondary font-heading-caps flex items-center justify-center gap-2 border border-secondary hover:bg-secondary-fixed transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined" data-icon="stop_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">stop_circle</span>
+                    STOP_SEQUENCER
+                </button>
+<div class="hidden lg:flex flex-col justify-center px-4 bg-zinc-950 border border-zinc-800 min-w-[200px]">
+<span class="text-[9px] text-zinc-500 font-mono">CURRENT_EPOCH</span>
+<span class="font-telemetry-md text-on-surface">X-992.00.412</span>
+</div>
+</footer>
+</main>
+</div>
+</body></html>
