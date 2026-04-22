@@ -3,6 +3,7 @@ import React, { createContext, useReducer, useMemo } from 'react';
 export const SensorDataContext = createContext();
 export const TerminalLogContext = createContext();
 export const SensorDispatchContext = createContext();
+export const HistoryDataContext = createContext();
 
 const initialState = {
   isInitializing: true,
@@ -64,8 +65,8 @@ const reducer = (state, action) => {
       };
     }
     case 'UPDATE_TERMINAL': {
-      const newLine = action.payload.line;
-      const newLines = [...state.terminalLines, newLine];
+      const newLineObj = { id: Date.now() + Math.random(), text: action.payload.line };
+      const newLines = [...state.terminalLines, newLineObj];
       if (newLines.length > 200) newLines.shift();
       return { ...state, terminalLines: newLines };
     }
@@ -81,19 +82,22 @@ export const SensorProvider = ({ children }) => {
 
   const sensorData = useMemo(() => ({
     latestData: state.latestData,
-    history: state.history,
     wsConnected: state.wsConnected,
     isInitializing: state.isInitializing
-  }), [state.latestData, state.history, state.wsConnected, state.isInitializing]);
+  }), [state.latestData, state.wsConnected, state.isInitializing]);
+
+  const historyData = useMemo(() => state.history, [state.history]);
 
   const terminalData = useMemo(() => state.terminalLines, [state.terminalLines]);
 
   return (
     <SensorDispatchContext.Provider value={dispatch}>
       <SensorDataContext.Provider value={sensorData}>
-        <TerminalLogContext.Provider value={terminalData}>
-          {children}
-        </TerminalLogContext.Provider>
+        <HistoryDataContext.Provider value={historyData}>
+          <TerminalLogContext.Provider value={terminalData}>
+            {children}
+          </TerminalLogContext.Provider>
+        </HistoryDataContext.Provider>
       </SensorDataContext.Provider>
     </SensorDispatchContext.Provider>
   );

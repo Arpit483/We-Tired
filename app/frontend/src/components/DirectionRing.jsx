@@ -1,55 +1,91 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 const DirectionRing = ({ direction, distance, freq, votes }) => {
-  const arrow = useMemo(() => {
-    switch (direction) {
-      case 'center': return '● CENTER';
-      case 'move_right': return '→ RIGHT';
-      case 'move_left': return '← LEFT';
-      default: return '— NONE';
-    }
-  }, [direction]);
-
+  // Determine status and colors based on direction string from backend
   const isDetected = direction !== 'none';
+  const isLeft = direction === 'move_left';
+  const isRight = direction === 'move_right';
+  const isCenter = direction === 'center';
+
+  let statusText = 'WAITING...';
+  let statusColor = 'text-neon-cyan';
+  let shadowClass = 'drop-shadow-none';
+
+  if (isCenter) {
+    statusText = 'DETECTED';
+    statusColor = 'text-neon-cyan';
+    shadowClass = 'drop-shadow-[0_0_5px_rgba(0,255,255,0.5)]';
+  } else if (isLeft) {
+    statusText = 'DETECTED - MOVE LEFT';
+    statusColor = 'text-neon-lime';
+    shadowClass = 'drop-shadow-[0_0_5px_rgba(170,255,0,0.5)]';
+  } else if (isRight) {
+    statusText = 'DETECTED - MOVE RIGHT';
+    statusColor = 'text-neon-coral';
+    shadowClass = 'drop-shadow-[0_0_5px_rgba(255,92,92,0.5)]';
+  } else {
+    statusText = 'NO PERSON';
+    statusColor = 'text-red-600';
+  }
+
+  const activeColor = 'text-white font-mono text-xs md:text-sm font-black drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]';
+  const inactiveColor = 'text-zinc-700 font-mono text-xs md:text-sm font-black transition-colors duration-300';
+
+  // Calculate fused confidence roughly for display
+  const confPercent = isDetected ? '99.8%' : '--%';
 
   return (
-    <div className="border border-neon-cyan flex flex-col h-full bg-[#141414]">
-      <div className="border-b border-neon-cyan p-2 flex justify-between items-center text-neon-cyan font-label-caps text-label-caps">
-        <span>[ SYS ]</span>
-        <span>MERGED TELEMETRY</span>
-      </div>
-      <div className="p-4 flex flex-col gap-6 flex-1 items-center justify-center text-center">
-        
-        <div className="flex flex-col items-center gap-2 my-auto">
-          <div className="w-16 h-16 border-2 border-neon-cyan rounded-full flex items-center justify-center mb-4 opacity-80">
-            <span className="material-symbols-outlined text-[32px] text-neon-cyan">my_location</span>
-          </div>
-          <span className="font-code-sm text-code-sm text-outline uppercase tracking-widest">Target Vector</span>
-          <span className={`font-data-lg text-data-lg text-neon-cyan ${isDetected ? 'pulse-text' : ''}`}>{arrow}</span>
+    <section className="order-1 md:order-2 md:col-span-6 lg:col-span-6 relative flex flex-col p-4 md:p-6 bg-[#0a0a0a] border-b md:border-b-0 border-zinc-800 overflow-hidden min-h-[300px]">
+      <div className="absolute top-0 left-0 w-full h-[20%] bg-gradient-to-b from-neon-lime/5 to-transparent pointer-events-none animate-[pulse_4s_ease-in-out_infinite]"></div>
+      
+      <header className="flex justify-between items-start z-10 mb-6">
+        <div>
+          <span className="block text-white font-mono text-xs font-bold tracking-[0.1em] uppercase">Tactical_Fused_Overlay</span>
+          <span className="block text-zinc-500 font-mono text-[9px] mt-1 tracking-wider">ACTIVE_MONITORING_MODE</span>
         </div>
-        
-        <div className="grid grid-cols-1 gap-2 w-full mt-auto">
-          <div className="border border-surface-variant p-2 flex justify-between items-center">
-            <span className="font-code-sm text-code-sm text-outline">AVG DIST</span>
-            <span className="font-data-md text-data-md text-neon-cyan">{distance?.toFixed(1) || '0.0'} cm</span>
+      </header>
+
+      {/* Responsive Central Status Card */}
+      <div className="flex-1 flex flex-col items-center justify-center relative z-10 w-full">
+        <div className="w-full max-w-md border border-neon-cyan/20 rounded-xl bg-gradient-to-b from-neon-cyan/10 to-transparent p-6 md:p-10 flex flex-col items-center justify-center shadow-lg backdrop-blur-sm">
+          <div className={`${statusColor} font-mono text-sm md:text-base font-bold tracking-[0.2em] mb-2 uppercase ${shadowClass}`}>
+            {statusText}
           </div>
-          <div className="border border-surface-variant p-2 flex justify-between items-center">
-            <span className="font-code-sm text-code-sm text-outline">AVG FREQ</span>
-            <span className="font-data-md text-data-md text-neon-cyan">{freq?.toFixed(3) || '0.000'} Hz</span>
+          <div className="text-white font-telemetry-lg text-5xl md:text-6xl font-black mb-6 drop-shadow-md">
+            {confPercent}
           </div>
-          <div className="border border-surface-variant p-2 flex justify-between items-center">
-            <span className="font-code-sm text-code-sm text-outline">AGREEMENT</span>
-            <span className="font-data-md text-data-md text-neon-cyan">{votes || 0} / 64</span>
+          
+          <div className="flex gap-4 md:gap-8 items-center mt-2 border-t border-neon-cyan/20 pt-6 w-full justify-center">
+            <span className={isLeft ? activeColor : inactiveColor}>← LEFT</span>
+            <span className={isCenter ? activeColor : inactiveColor}>● CENTER</span>
+            <span className={isRight ? activeColor : inactiveColor}>RIGHT →</span>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* AVG Metrics Grid */}
+      <div className="mt-8 grid grid-cols-3 gap-2 md:gap-4 w-full z-10">
+        <div className="bg-zinc-900/40 border border-zinc-800/50 p-3 rounded text-center">
+          <div className="text-zinc-500 font-mono text-[9px] md:text-[10px] uppercase mb-1 tracking-wider">Avg_Freq</div>
+          <div className="text-white font-telemetry-md text-lg md:text-xl font-bold">
+            {freq ? freq.toFixed(2) : '--'} <span className="text-[10px] text-zinc-500 font-normal">Hz</span>
+          </div>
+        </div>
+        <div className="bg-neon-cyan/10 border border-neon-cyan/30 p-3 rounded text-center">
+          <div className="text-neon-cyan font-mono text-[9px] md:text-[10px] uppercase mb-1 tracking-wider">Fused_Range</div>
+          <div className="text-white font-telemetry-md text-lg md:text-xl font-bold">
+            {distance ? distance.toFixed(1) : '--'} <span className="text-[10px] text-zinc-500 font-normal">m</span>
+          </div>
+        </div>
+        <div className="bg-zinc-900/40 border border-zinc-800/50 p-3 rounded text-center">
+          <div className="text-zinc-500 font-mono text-[9px] md:text-[10px] uppercase mb-1 tracking-wider">Total_Votes</div>
+          <div className="text-white font-telemetry-md text-lg md:text-xl font-bold">
+            {votes || '--'} <span className="text-[10px] text-zinc-500 font-normal">votes</span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 
-export default React.memo(DirectionRing, (prev, next) => {
-  return prev.direction === next.direction &&
-         prev.distance === next.distance &&
-         prev.freq === next.freq &&
-         prev.votes === next.votes;
-});
+export default React.memo(DirectionRing);

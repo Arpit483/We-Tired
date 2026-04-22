@@ -60,6 +60,23 @@ def api_predict():
         notify_sensors(payload)
         socketio.emit("sensor_update", payload)
         
+        # Save to DB for history
+        try:
+            db_path = os.path.join(os.path.dirname(__file__), "predictions.db")
+            conn = sqlite3.connect(db_path)
+            cur = conn.cursor()
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS predictions (id INTEGER PRIMARY KEY AUTOINCREMENT, raw_json TEXT, timestamp INTEGER)"
+            )
+            cur.execute(
+                "INSERT INTO predictions (raw_json, timestamp) VALUES (?, ?)", 
+                (json.dumps(payload), payload["timestamp"])
+            )
+            conn.commit()
+            conn.close()
+        except Exception as db_err:
+            logger.error(f"DB Error: {db_err}")
+            
         return jsonify({"ok": True}), 200
     except Exception as e:
         logger.error(f"Error in api_predict: {e}")
@@ -148,7 +165,7 @@ def api_history():
 
 @app.route("/api/restart", methods=["POST"])
 def api_restart():
-    if request.remote_addr != "127.0.0.1":
+    if request.remote_addr != "127.0.0.1" and not request.remote_addr.startswith("192.168."):
         return jsonify({"error": "Unauthorized"}), 403
     try:
         subprocess.run(["pkill", "-f", "deep_optimized.py"])
@@ -159,7 +176,7 @@ def api_restart():
 
 @app.route("/api/stop", methods=["POST"])
 def api_stop():
-    if request.remote_addr != "127.0.0.1":
+    if request.remote_addr != "127.0.0.1" and not request.remote_addr.startswith("192.168."):
         return jsonify({"error": "Unauthorized"}), 403
     try:
         subprocess.run(["pkill", "-f", "deep_optimized.py"])

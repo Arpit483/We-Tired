@@ -1,11 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { SensorDataContext } from '../context/SensorContext';
+import { HistoryDataContext } from '../context/SensorContext';
 import BreathingChart from '../components/BreathingChart';
 import DetectionTable from '../components/DetectionTable';
 
 const History = () => {
-  const state = useContext(SensorDataContext);
-  const { history } = state;
+  const history = useContext(HistoryDataContext);
   const [dbHistory, setDbHistory] = useState([]);
 
   useEffect(() => {

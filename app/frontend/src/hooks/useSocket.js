@@ -8,9 +8,8 @@ export const useSocket = () => {
 
   useEffect(() => {
     // connect to current host
-    const host = window.location.host;
     if (!socketRef.current) {
-      socketRef.current = io(window.location.protocol + '//' + host, {
+      socketRef.current = io('/', {
         reconnectionDelay: 3000,
         reconnection: true
       });
@@ -37,7 +36,10 @@ export const useSocket = () => {
     });
 
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
   }, [dispatch]);
 };
