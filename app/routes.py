@@ -30,13 +30,20 @@ def notify_sensors(data):
         except queue.Full:
             pass
 
-# Serve React App for all paths
+# Serve React App for all paths, fallback to template if not built
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve(path):
+    # Serve static assets if they exist (JS, CSS, images)
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return app.send_static_file(path)
-    return app.send_static_file("index.html")
+    
+    # If React index.html is built and available, serve it
+    if os.path.exists(os.path.join(app.static_folder, "index.html")):
+        return app.send_static_file("index.html")
+        
+    # Fallback to the vanilla HTML template if React is not built
+    return render_template("index.html")
 
 @app.route("/api/predict", methods=["POST"])
 def api_predict():
