@@ -9,7 +9,7 @@ export const useSocket = () => {
   useEffect(() => {
     // connect to current host
     if (!socketRef.current) {
-      socketRef.current = io('/', {
+      socketRef.current = io('http://192.168.137.19:5050', {
         reconnectionDelay: 3000,
         reconnection: true
       });

@@ -62,7 +62,7 @@ const Landing = () => {
             </div>
             <div className="flex gap-4 items-start">
               <span className="text-neon-coral font-bold mt-1">03.</span>
-              <p className="leading-relaxed">Wait for stable confidence > 0.85 and 32-window voting consensus before authorizing extraction procedures.</p>
+              <p className="leading-relaxed">Wait for stable confidence &gt; 0.85 and 32-window voting consensus before authorizing extraction procedures.</p>
             </div>
           </div>
 
