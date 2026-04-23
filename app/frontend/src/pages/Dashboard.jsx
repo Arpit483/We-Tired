@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { SensorDataContext } from '../context/SensorContext';
+import { SensorDataContext, HistoryDataContext } from '../context/SensorContext';
 import SensorPanel from '../components/SensorPanel';
 import DirectionRing from '../components/DirectionRing';
 import TerminalLog from '../components/TerminalLog';
@@ -16,8 +16,12 @@ const SkeletonLoader = () => (
 const Dashboard = () => {
   const state = useContext(SensorDataContext);
   const { latestData, isInitializing } = state;
+  const history = useContext(HistoryDataContext);
 
   if (isInitializing) return <SkeletonLoader />;
+
+  const leftSamples = history.slice(-12).map(h => h.left_confidence || 0);
+  const rightSamples = history.slice(-12).map(h => h.right_confidence || 0);
 
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
@@ -37,6 +41,7 @@ const Dashboard = () => {
             detected: latestData.left_detected,
             voting_window: latestData.voting_window,
           }}
+          samples={leftSamples}
         />
 
         {/* Center radar */}
@@ -61,6 +66,7 @@ const Dashboard = () => {
             detected: latestData.right_detected,
             voting_window: latestData.voting_window,
           }}
+          samples={rightSamples}
         />
       </div>
 

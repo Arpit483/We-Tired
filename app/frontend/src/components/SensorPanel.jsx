@@ -1,8 +1,19 @@
 import React from 'react';
 
 // Mini bar chart for WAVEFORM_DELTA
-const WaveformDelta = ({ color }) => {
-  const heights = [30, 50, 70, 45, 80, 55, 65, 40, 75, 60, 85, 50];
+const WaveformDelta = ({ color, samples }) => {
+  const defaultHeights = [30, 50, 70, 45, 80, 55, 65, 40, 75, 60, 85, 50];
+  let heights;
+  if (samples && samples.length > 0) {
+    const mapped = samples.map(v => Math.min(100, Math.max(5, v * 100)));
+    if (mapped.length < 12) {
+      heights = [...Array(12 - mapped.length).fill(10), ...mapped];
+    } else {
+      heights = mapped.slice(-12);
+    }
+  } else {
+    heights = defaultHeights;
+  }
   return (
     <div className="mt-3">
       <div className="font-mono text-[9px] text-zinc-600 tracking-widest mb-2 uppercase">WAVEFORM_DELTA</div>
@@ -23,7 +34,7 @@ const WaveformDelta = ({ color }) => {
   );
 };
 
-const SensorPanel = ({ side, name, colorPrefix, data }) => {
+const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
   const isLeft = side === 'left';
   const color = colorPrefix === 'neon-lime' ? '#AAFF00' : '#FF5C5C';
   const colorClass = colorPrefix === 'neon-lime' ? 'text-[#AAFF00]' : 'text-[#FF5C5C]';
@@ -35,6 +46,9 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
   const detected = data.detected || false;
   const votingWindow = data.voting_window || 32;
   const freq = data.freq || 0;
+  const power = data.power || 0;
+
+  const displayDist = (distance / 100).toFixed(2);
 
   const orderClass = isLeft ? 'order-2 md:order-1' : 'order-3 md:order-3';
 
@@ -92,7 +106,7 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
         <div className={!isLeft ? 'text-right' : ''}>
           <div className="text-zinc-600 font-mono text-[9px] uppercase tracking-widest mb-1">Target_Distance</div>
           <div className={`${colorClass} font-mono text-4xl font-black leading-none`}>
-            {distance.toFixed(1)}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
+            {displayDist}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
           </div>
         </div>
 
@@ -111,7 +125,7 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
         </div>
 
         {/* Waveform */}
-        <WaveformDelta color={color} />
+        <WaveformDelta color={color} samples={samples} />
 
         {/* Breathing status */}
         <div className="mt-auto">
@@ -136,6 +150,8 @@ export default React.memo(SensorPanel, (prev, next) => {
     prev.data.distance === next.data.distance &&
     prev.data.confidence === next.data.confidence &&
     prev.data.votes === next.data.votes &&
-    prev.data.detected === next.data.detected
+    prev.data.detected === next.data.detected &&
+    prev.data.freq === next.data.freq &&
+    prev.data.power === next.data.power
   );
 });

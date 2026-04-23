@@ -28,6 +28,7 @@ from scipy.fftpack import fft, fftfreq
 import warnings
 import requests
 import json
+import queue
 
 warnings.filterwarnings('ignore')
 
@@ -184,8 +185,8 @@ def load_model(path, device):
 # =====================================================================================
 sensor_states = {1: {}, 2: {}}
 web_lock = threading.Lock()
+tcn_lock = threading.Lock()
 
-import queue
 web_queue = queue.Queue(maxsize=100)
 
 def web_worker():
@@ -280,8 +281,6 @@ def send_to_web(sensor_id, distance, detected, confidence, votes, freq, power):
 # =====================================================================================
 # THREAD WORKER FOR EACH SENSOR (YOUR EXACT ORIGINAL CODE)
 # =====================================================================================
-import queue
-
 terminal_queue = queue.Queue(maxsize=1000)
 
 def terminal_worker():
@@ -365,7 +364,8 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                         # ── TCN-Attention v2 inference ─────────────────────────────
                         if tcn_engine is not None:
                             try:
-                                _detected_tcn, conf = tcn_engine.predict(arr)
+                                with tcn_lock:
+                                    _detected_tcn, conf = tcn_engine.predict(arr)
                             except Exception as _e:
                                 tee_print(f"{prefix} TCN predict error: {_e}")
                                 conf = 0.0
@@ -374,9 +374,15 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                             feats = extract_breathing_features(arr)
                             conf  = score_breathing_features(feats)
 
-                        # feats is only needed for tee_print freq/power — recompute lightly
-                        # if engine ran we still need peak_freq and peak_power for the log line
-                        _feats_log = extract_breathing_features(arr)
+                        if Config.VERBOSE:
+                            # feats is only needed for tee_print freq/power — recompute lightly
+                            # if engine ran we still need peak_freq and peak_power for the log line
+                            _feats_log = extract_breathing_features(arr)
+                            freq_str = f"{_feats_log['peak_freq']:.3f}"
+                            pow_str = f"{_feats_log['peak_power']:.1f}"
+                        else:
+                            freq_str = "—"
+                            pow_str = "—"
 
                         vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
                         votes = sum(vote_buf)
@@ -384,12 +390,14 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                         
                         status = "🟢 BREATHING" if detected else "⚫ NO"
                         tee_print(f"{prefix} F:{frame:05d}  D:{distance:6.1f}  "
-                              f"Freq:{_feats_log['peak_freq']:.3f}  Pow:{_feats_log['peak_power']:.1f}  "
+                              f"Freq:{freq_str}  Pow:{pow_str}  "
                               f"Conf:{conf:.3f}  Votes:{votes}/{Config.VOTING_WINDOW}  {status}")
                         
                         # Send to web (does not affect detection logic)
+                        freq_val = _feats_log['peak_freq'] if Config.VERBOSE else 0.0
+                        pow_val = _feats_log['peak_power'] if Config.VERBOSE else 0.0
                         send_to_web(sensor_id, distance, detected, conf, votes,
-                                   _feats_log['peak_freq'], _feats_log['peak_power'])
+                                   freq_val, pow_val)
                         
                         frame += 1
                         

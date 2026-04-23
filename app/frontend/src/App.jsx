@@ -44,7 +44,15 @@ const Sidebar = () => {
 
       {/* Power Off */}
       <div className="border-t border-[#1a1a1a] p-4">
-        <div className="flex items-center gap-2 text-zinc-600 font-mono text-[10px] tracking-widest cursor-pointer hover:text-red-400 transition-colors">
+        <div
+          className="flex items-center gap-2 text-zinc-600 font-mono text-[10px] tracking-widest cursor-pointer hover:text-red-400 transition-colors"
+          onClick={async () => {
+            if (window.confirm('Stop VitalRadar detection system?')) {
+              try { await fetch('/api/stop', { method: 'POST' }); }
+              catch(e) { console.error(e); }
+            }
+          }}
+        >
           <span className="material-symbols-outlined text-[14px]">power_settings_new</span>
           POWER_OFF
         </div>

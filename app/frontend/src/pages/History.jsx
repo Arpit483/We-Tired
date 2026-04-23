@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { HistoryDataContext } from '../context/SensorContext';
+import { HistoryDataContext, SensorDataContext } from '../context/SensorContext';
 import BreathingChart from '../components/BreathingChart';
 import DetectionTable from '../components/DetectionTable';
 
 const History = () => {
   const history = useContext(HistoryDataContext);
+  const { latestData } = useContext(SensorDataContext);
   const [dbHistory, setDbHistory] = useState([]);
 
   useEffect(() => {
@@ -33,6 +34,21 @@ const History = () => {
             S1 ACTIVE
           </div>
           <div className="font-data-lg text-data-lg text-[#AAFF00] mt-2">●</div>
+        </div>
+        <div className="bento-border p-sm flex flex-col bg-[#141414]">
+          <div
+            className="font-label-caps text-label-caps mb-2 border-b pb-1 flex items-center gap-2"
+            style={{ color: latestData.right_detected ? '#AAFF00' : '#555', borderColor: latestData.right_detected ? '#AAFF00' : '#333' }}
+          >
+            <span className="material-symbols-outlined text-[14px]">sensors</span>
+            {latestData.right_detected ? 'S2 ACTIVE' : 'S2 OFFLINE'}
+          </div>
+          <div
+            className="font-data-lg text-data-lg mt-2"
+            style={{ color: latestData.right_detected ? '#AAFF00' : '#555' }}
+          >
+            {latestData.right_detected ? '●' : '○'}
+          </div>
         </div>
       </div>
 

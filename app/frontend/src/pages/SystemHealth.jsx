@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSystemHealth } from '../hooks/useSystemHealth';
 
 const AsciiBar = ({ percent, width = 10, errorThreshold = 80 }) => {
@@ -11,6 +11,14 @@ const AsciiBar = ({ percent, width = 10, errorThreshold = 80 }) => {
 
 const SystemHealth = () => {
   const health = useSystemHealth();
+  const [modelInfo, setModelInfo] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/model')
+      .then(res => res.json())
+      .then(data => setModelInfo(data))
+      .catch(e => console.error(e));
+  }, []);
 
   const handleRestart = async () => {
     try {
@@ -92,14 +100,14 @@ const SystemHealth = () => {
         <section className="col-span-1 lg:col-span-6 bento-border bg-surface flex flex-col">
           <header className="p-sm bento-border-b flex items-center justify-between bg-surface-container-low">
             <div className="flex items-center gap-2">
-              <span className="font-label-caps text-label-caps text-outline">MODEL & PIPELINE</span>
+              <span className="font-label-caps text-label-caps text-outline">MODEL &amp; PIPELINE</span>
               <span className="material-symbols-outlined text-outline text-[16px]">memory</span>
             </div>
             <span className="font-code-sm text-code-sm text-primary">● STREAMING</span>
           </header>
           <div className="p-md flex flex-col gap-lg flex-1">
             <div className="inline-block bg-primary text-on-primary font-data-md text-data-md px-sm py-xs border border-on-primary w-max">
-              [ CNN + LSTM ] v2.4.1
+              {modelInfo ? modelInfo.name : 'Loading...'}
             </div>
 
             <div className="flex flex-col bento-border">
@@ -109,26 +117,30 @@ const SystemHealth = () => {
               </div>
               <div className="flex justify-between items-center p-xs bento-border-b font-data-md text-data-md text-on-surface">
                 <span>WINDOW_SIZE</span>
-                <span>256</span>
+                <span>{modelInfo ? modelInfo.window_size : '—'}</span>
               </div>
               <div className="flex justify-between items-center p-xs bento-border-b font-data-md text-data-md text-on-surface">
                 <span>THRESHOLD</span>
-                <span>0.85</span>
+                <span>{modelInfo ? modelInfo.confidence_threshold : '—'}</span>
               </div>
               <div className="flex justify-between items-center p-xs font-data-md text-data-md text-on-surface">
                 <span>FREQ_RANGE</span>
-                <span>0.5-2.0 Hz</span>
+                <span>{modelInfo ? `${modelInfo.freq_min}–${modelInfo.freq_max} Hz` : '—'}</span>
               </div>
             </div>
 
             <div className="flex gap-md mt-auto">
               <div className="flex-1 bg-surface-container-high bento-border p-sm flex flex-col items-center justify-center">
-                <span className="font-label-caps text-label-caps text-outline mb-xs">FFT PEAK</span>
-                <span className="font-data-lg text-data-lg text-primary">1.2 Hz</span>
+                <span className="font-label-caps text-label-caps text-outline mb-xs">FFT CONF</span>
+                <span className="font-data-lg text-data-lg text-primary">
+                  {health.fft_conf !== undefined ? `${(health.fft_conf * 100).toFixed(1)}%` : '—'}
+                </span>
               </div>
               <div className="flex-1 bg-surface-container-high bento-border p-sm flex flex-col items-center justify-center">
                 <span className="font-label-caps text-label-caps text-outline mb-xs">DL CONF</span>
-                <span className="font-data-lg text-data-lg text-tertiary">94.2%</span>
+                <span className="font-data-lg text-data-lg text-tertiary">
+                  {health.dl_conf !== undefined ? `${(health.dl_conf * 100).toFixed(1)}%` : '—'}
+                </span>
               </div>
             </div>
           </div>

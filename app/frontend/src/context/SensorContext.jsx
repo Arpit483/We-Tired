@@ -55,13 +55,15 @@ const reducer = (state, action) => {
       };
       
       const newHistory = [...state.history, newHistoryEntry];
-      if (newHistory.length > 500) newHistory.shift();
+      const trimmed = newHistory.length > 500
+        ? newHistory.slice(-500)
+        : newHistory;
 
       return {
         ...state,
         isInitializing: false,
         latestData: payload,
-        history: newHistory
+        history: trimmed
       };
     }
     case 'UPDATE_TERMINAL': {

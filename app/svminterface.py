@@ -1,9 +1,17 @@
 from .svmmodel import predict as ml_predict
-from .models import db, Prediction
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
+import json
 
 logger = logging.getLogger(__name__)
+
+class _FakeDB:
+    def session(self): pass
+
+db = _FakeDB()
+
+class Prediction:
+    pass
 
 
 def call_predict(payload):
@@ -44,45 +52,7 @@ def call_predict(payload):
         votes = calculate_votes(result)
         result["votes"] = votes
 
-        # Save to database
-        try:
-            pred = Prediction(
-                breathing=result.get("breathing", False),
-                freq=result.get("freq", 0.0),
-                power=result.get("power", 0.0),
-                entropy=result.get("entropy", 0.0),
-                distance=result.get("distance", 0.0),
-                votes=votes,
-                fft_conf=result.get("fft_conf", 0.0),  # FFT confidence
-                dl_conf=result.get("dl_conf", 0.0),  # Deep learning confidence
-                
-                # Dual sensor data
-                status=payload.get("status", "not_detected"),
-                direction=payload.get("direction", "none"),
-                left_detected=payload.get("left_detected", False),
-                left_distance=payload.get("left_distance", 0.0),
-                left_confidence=payload.get("left_confidence", 0.0),
-                left_votes=payload.get("left_votes", 0),
-                left_freq=payload.get("left_freq", 0.0),
-                left_power=payload.get("left_power", 0.0),
-                right_detected=payload.get("right_detected", False),
-                right_distance=payload.get("right_distance", 0.0),
-                right_confidence=payload.get("right_confidence", 0.0),
-                right_votes=payload.get("right_votes", 0),
-                right_freq=payload.get("right_freq", 0.0),
-                right_power=payload.get("right_power", 0.0),
-                
-                timestamp=datetime.utcnow(),
-            )
-
-            db.session.add(pred)
-            db.session.commit()
-        except Exception as db_error:
-            logger.error(f"Database error in call_predict: {db_error}")
-            db.session.rollback()
-            # Still return the result even if database save fails
-            result["db_error"] = str(db_error)
-            return result
+        logger.info(json.dumps(result))
 
         return result
 

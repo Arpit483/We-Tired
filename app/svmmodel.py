@@ -116,32 +116,4 @@ def extract_features(dist_array):
 def predict(feature_dict):
     return {"error": "SVM disabled; using deep learning path only", "ok": False}
 
-    
-    if len(dist_series) < 32:
-        return {"error": f"Need 32+ samples, got {len(dist_series)}", "ok": False}
-    
-    if clf is None:
-        if not load_model():
-            return {"error": "Model failed to load", "ok": False}
-    
-    try:
-        features = extract_features(dist_series)
-        X_input = features.reshape(1, -1)
-        
-        if scaler:
-            X_input = scaler.transform(X_input)
-        
-        pred = clf.predict(X_input)[0]
-        
-        return {
-            "breathing": bool(pred),
-            "freq": float(features[23]),
-            "power": float(features[21]),
-            "entropy": float(features[29]),
-            "distance": float(dist_series[-1]),
-            "ok": True
-        }
-    except Exception as e:
-        return {"error": str(e), "ok": False}
-
 load_model()
