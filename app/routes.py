@@ -210,6 +210,17 @@ def api_predict():
 def api_latest():
     with _latest_lock:              # HIGH-04: consistent read
         snapshot = dict(LATEST)
+    
+    if not snapshot:
+        return jsonify({
+            "breathing": False, "status": "not_detected", "direction": "none",
+            "left_detected": False, "left_distance": 0, "right_detected": False,
+            "right_distance": 0, "left_confidence": 0, "right_confidence": 0,
+            "left_votes": 0, "right_votes": 0, "votes": 0, "voting_window": 32,
+            "distance": 0, "freq": 0, "power": 0, "entropy": 0,
+            "fft_conf": 0, "dl_conf": 0, "timestamp": int(time.time() * 1000)
+        }), 200
+        
     return jsonify(snapshot), 200
 
 
