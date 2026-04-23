@@ -114,6 +114,10 @@ def extract_features(dist_array):
     ], dtype=float)
 
 def predict(feature_dict):
+    """SVM path is disabled. The TCN-Attention v2 engine is used for all inference."""
     return {"error": "SVM disabled; using deep learning path only", "ok": False}
 
-load_model()
+# MED-01: load_model() is intentionally NOT called at import time.
+# The SVM pkl files are absent and calling it would generate noisy failure
+# messages on every server startup. Call load_model() manually if you ever
+# need to re-enable SVM inference.

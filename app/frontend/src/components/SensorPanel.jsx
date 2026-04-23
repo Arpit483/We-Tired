@@ -137,7 +137,9 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
                 : 'bg-[#111] border border-[#1f1f1f] text-zinc-600'
             }`}
           >
-            {detected ? 'BREATHING\nDETECTED' : 'STANDBY / NO SIGNAL'}
+            {detected ? (
+              <><span>BREATHING</span><br /><span>DETECTED</span></>
+            ) : 'STANDBY / NO SIGNAL'}
           </div>
         </div>
       </div>
@@ -146,12 +148,17 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
 };
 
 export default React.memo(SensorPanel, (prev, next) => {
+  // Compare samples by length + last value to detect new waveform data
+  const samplesEqual =
+    prev.samples?.length === next.samples?.length &&
+    prev.samples?.[prev.samples.length - 1] === next.samples?.[next.samples.length - 1];
   return (
     prev.data.distance === next.data.distance &&
     prev.data.confidence === next.data.confidence &&
     prev.data.votes === next.data.votes &&
     prev.data.detected === next.data.detected &&
     prev.data.freq === next.data.freq &&
-    prev.data.power === next.data.power
+    prev.data.power === next.data.power &&
+    samplesEqual
   );
 });

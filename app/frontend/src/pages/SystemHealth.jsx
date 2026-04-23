@@ -67,7 +67,11 @@ const SystemHealth = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span>CORE_TEMP</span>
-                <AsciiBar percent={health.cpu_temp} errorThreshold={80} />
+                {/* MED-02: cpu_temp can be null when sensor is unavailable */}
+                {health.cpu_temp_available === false || health.cpu_temp === null
+                  ? <span className="text-outline">N/A (unavailable)</span>
+                  : <AsciiBar percent={health.cpu_temp} errorThreshold={80} />
+                }
               </div>
             </div>
 

@@ -1,45 +1,61 @@
-import { useEffect, useContext, useRef } from 'react';
+import { useEffect, useContext, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { SensorDispatchContext } from '../context/SensorContext';
 
+/**
+ * HIGH-05 fix: wrap dispatch in useCallback with [] deps so its reference never
+ * changes, preventing the useEffect from re-running (and the socket from
+ * disconnecting) on every context update at 10 Hz.
+ *
+ * The socket is created once and torn down only on true component unmount.
+ */
 export const useSocket = () => {
-  const dispatch = useContext(SensorDispatchContext);
-  const socketRef = useRef(null);
+  const rawDispatch = useContext(SensorDispatchContext);
+  const socketRef   = useRef(null);
+
+  // Stable dispatch reference — never changes across renders
+  const dispatch = useCallback(rawDispatch, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Connect to same host that served the page (works on any IP/network)
+    // Only create the socket once
     if (!socketRef.current) {
       socketRef.current = io(window.location.origin, {
         reconnectionDelay: 3000,
-        reconnection: true
+        reconnection: true,
       });
     }
 
-    socketRef.current.on('connect_error', (err) => {
-      console.error("Socket connect_error", err);
+    const socket = socketRef.current;
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connect_error', err);
     });
 
-    socketRef.current.on('connect', () => {
+    socket.on('connect', () => {
       dispatch({ type: 'SET_WS_CONNECTED', payload: true });
     });
 
-    socketRef.current.on('disconnect', () => {
+    socket.on('disconnect', () => {
       dispatch({ type: 'SET_WS_CONNECTED', payload: false });
     });
 
-    socketRef.current.on('sensor_update', (data) => {
+    socket.on('sensor_update', (data) => {
       dispatch({ type: 'UPDATE_SENSOR', payload: data });
     });
 
-    socketRef.current.on('terminal_update', (data) => {
+    socket.on('terminal_update', (data) => {
       dispatch({ type: 'UPDATE_TERMINAL', payload: data });
     });
 
+    // Cleanup runs only when the component truly unmounts ([] dep array)
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      socket.off('connect_error');
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('sensor_update');
+      socket.off('terminal_update');
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, [dispatch]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 };

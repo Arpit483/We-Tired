@@ -4,7 +4,8 @@ export const useSystemHealth = () => {
   const [health, setHealth] = useState({
     cpu_percent: 0,
     ram_percent: 0,
-    cpu_temp: 0,
+    cpu_temp: null,          // null until first poll; avoids displaying 0°C
+    cpu_temp_available: false,
     s1_connected: false,
     s2_connected: false,
     uptime: 0

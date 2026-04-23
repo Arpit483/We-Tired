@@ -67,10 +67,10 @@ const reducer = (state, action) => {
       };
     }
     case 'UPDATE_TERMINAL': {
-      const newLineObj = { id: Date.now() + Math.random(), text: action.payload.line };
+      const newLineObj = { id: String(Date.now()) + String(Math.random()), text: action.payload.line };
       const newLines = [...state.terminalLines, newLineObj];
-      if (newLines.length > 200) newLines.shift();
-      return { ...state, terminalLines: newLines };
+      // Use slice(-200) instead of .shift() to keep the reducer pure (no mutation)
+      return { ...state, terminalLines: newLines.length > 200 ? newLines.slice(-200) : newLines };
     }
     case 'SET_WS_CONNECTED':
       return { ...state, wsConnected: action.payload };

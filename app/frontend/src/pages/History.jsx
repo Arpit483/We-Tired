@@ -9,8 +9,17 @@ const History = () => {
   const [dbHistory, setDbHistory] = useState([]);
 
   useEffect(() => {
-    fetch('/api/history').then(res => res.json()).then(data => setDbHistory(data)).catch(e => console.error(e));
-  }, []);
+    // LOW-03: only fetch from DB when in-memory history is empty
+    // Dep on history.length so this re-evaluates whenever length changes
+    if (history.length === 0) {
+      fetch('/api/history')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setDbHistory(data);
+        })
+        .catch(e => console.error('History fetch error:', e));
+    }
+  }, [history.length]); // re-run whenever length changes (0->N clears DB fallback)
 
   const displayData = history.length > 0 ? history : dbHistory;
 
