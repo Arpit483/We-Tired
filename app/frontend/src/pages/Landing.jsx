@@ -18,8 +18,8 @@ const Landing = () => {
         
         {/* Typography */}
         <div className="mb-8 relative z-10">
-          <h1 className="font-display-xl text-4xl sm:text-5xl lg:text-7xl text-on-surface mb-2 tracking-tighter uppercase leading-none break-words">WE TIRED</h1>
-          <h2 className="font-h1 text-2xl sm:text-3xl md:text-4xl neon-lime mb-6 tracking-tight">VITALRADAR</h2>
+          <h1 className="font-display-xl text-4xl sm:text-5xl lg:text-7xl text-on-surface mb-2 tracking-tighter uppercase leading-none break-words">VITAL RADAR</h1>
+          <h2 className="font-h1 text-2xl sm:text-3xl md:text-4xl neon-lime mb-6 tracking-tight">SURVIVOR DETECTION SYSTEM</h2>
           <p className="font-data-md text-sm sm:text-base text-on-surface-variant max-w-xl border-l-2 border-neon-coral pl-4 leading-relaxed">
             Non-invasive survivor detection system designed exclusively for emergency disaster response and search & rescue operations. Utilizing dual LD2410 mmWave radar sensors for micro-movement and respiratory derivation under rubble.
           </p>
