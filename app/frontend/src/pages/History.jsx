@@ -8,7 +8,7 @@ const History = () => {
   const [dbHistory, setDbHistory] = useState([]);
 
   useEffect(() => {
-    fetch('http://192.168.137.19:5050/api/history').then(res => res.json()).then(data => setDbHistory(data)).catch(e => console.error(e));
+    fetch('/api/history').then(res => res.json()).then(data => setDbHistory(data)).catch(e => console.error(e));
   }, []);
 
   const displayData = history.length > 0 ? history : dbHistory;

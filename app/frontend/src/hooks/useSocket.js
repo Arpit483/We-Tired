@@ -7,9 +7,9 @@ export const useSocket = () => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    // connect to current host
+    // Connect to same host that served the page (works on any IP/network)
     if (!socketRef.current) {
-      socketRef.current = io('http://192.168.137.19:5050', {
+      socketRef.current = io(window.location.origin, {
         reconnectionDelay: 3000,
         reconnection: true
       });

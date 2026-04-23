@@ -17,7 +17,7 @@ export const useSystemHealth = () => {
 
     const fetchHealth = async () => {
       try {
-        const res = await fetch('http://192.168.137.19:5050/api/system');
+        const res = await fetch('/api/system');
         if (res.ok && active) {
           const data = await res.json();
           setHealth(data);

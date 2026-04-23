@@ -14,10 +14,11 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
   const confidence = data.confidence || 0;
   const votes = data.votes || 0;
   const detected = data.detected || false;
+  const votingWindow = data.voting_window || 32;
 
   // Segmented voting grid logic
   const cells = 10;
-  const activeCells = Math.round((votes / 32) * cells);
+  const activeCells = Math.round((votes / votingWindow) * cells);
   
   return (
     <section className={`${orderClass} md:col-span-3 lg:col-span-3 ${borderClass} p-4 md:p-6 flex flex-col justify-between bg-zinc-950/40`}>

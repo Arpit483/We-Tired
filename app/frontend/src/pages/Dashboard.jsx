@@ -45,7 +45,8 @@ const Dashboard = () => {
             freq: latestData.left_freq,
             power: latestData.left_power,
             votes: latestData.left_votes,
-            detected: latestData.left_detected
+            detected: latestData.left_detected,
+            voting_window: latestData.voting_window
           }} 
         />
         
@@ -60,7 +61,8 @@ const Dashboard = () => {
             freq: latestData.right_freq,
             power: latestData.right_power,
             votes: latestData.right_votes,
-            detected: latestData.right_detected
+            detected: latestData.right_detected,
+            voting_window: latestData.voting_window
           }} 
         />
       </div>
