@@ -184,8 +184,8 @@ const Scan = () => {
       <div className="flex flex-col items-center justify-center h-full relative z-10 w-full max-w-4xl mx-auto">
         
         {/* Giant Result */}
-        <div className={\`px-10 py-6 border-2 \${borderColor} \${shadowClass} mb-12 bg-[#0a0a0a] z-20\`}>
-          <h2 className={\`font-display-xl text-4xl sm:text-6xl \${titleColor} tracking-tighter uppercase leading-none\`}>
+        <div className={`px-10 py-6 border-2 ${borderColor} ${shadowClass} mb-12 bg-[#0a0a0a] z-20`}>
+          <h2 className={`font-display-xl text-4xl sm:text-6xl ${titleColor} tracking-tighter uppercase leading-none`}>
             {detected ? 'HUMAN DETECTED' : 'NO SIGNAL'}
           </h2>
         </div>
