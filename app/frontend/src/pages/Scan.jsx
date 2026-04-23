@@ -148,7 +148,7 @@ const Scan = () => {
               <span>{(leftConf * 100).toFixed(0)}%</span>
             </div>
             <div className="h-1 bg-[#1a1a1a] w-full relative">
-              <div className="absolute top-0 left-0 h-full bg-[#00FFFF] transition-all duration-100" style={{ width: \`\${Math.min(100, leftConf * 100)}%\` }}></div>
+              <div className="absolute top-0 left-0 h-full bg-[#00FFFF] transition-all duration-100" style={{ width: `${Math.min(100, leftConf * 100)}%` }}></div>
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -157,7 +157,7 @@ const Scan = () => {
               <span>{(rightConf * 100).toFixed(0)}%</span>
             </div>
             <div className="h-1 bg-[#1a1a1a] w-full relative">
-              <div className="absolute top-0 left-0 h-full bg-[#00FFFF] transition-all duration-100" style={{ width: \`\${Math.min(100, rightConf * 100)}%\` }}></div>
+              <div className="absolute top-0 left-0 h-full bg-[#00FFFF] transition-all duration-100" style={{ width: `${Math.min(100, rightConf * 100)}%` }}></div>
             </div>
           </div>
         </div>
