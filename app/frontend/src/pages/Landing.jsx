@@ -10,28 +10,28 @@ const Landing = () => {
       <section className="w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-surface-variant p-6 md:p-12 flex flex-col justify-center relative overflow-hidden">
         {/* Background Grid Texture */}
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: "radial-gradient(#AAFF00 1px, transparent 1px)", backgroundSize: "16px 16px" }}></div>
-        
+
         {/* Header Info */}
         <div className="border border-[#AAFF00] inline-block px-3 py-1 mb-8 self-start bg-[#141414] z-10">
-          <span className="font-label-caps text-label-caps text-[#AAFF00]">● RASPBERRY PI 4 · LD2410 DUAL RADAR · CNN+LSTM</span>
+          <span className="font-label-caps text-label-caps text-[#AAFF00]">● RASPBERRY PI 4 · LD2410D DUAL RADAR · TCN+FFT</span>
         </div>
-        
+
         {/* Typography */}
         <div className="mb-8 relative z-10">
           <h1 className="font-display-xl text-4xl sm:text-5xl lg:text-7xl text-on-surface mb-2 tracking-tighter uppercase leading-none break-words">VITAL RADAR</h1>
           <h2 className="font-h1 text-2xl sm:text-3xl md:text-4xl neon-lime mb-6 tracking-tight">SURVIVOR DETECTION SYSTEM</h2>
           <p className="font-data-md text-sm sm:text-base text-on-surface-variant max-w-xl border-l-2 border-neon-coral pl-4 leading-relaxed">
-            Non-invasive survivor detection system designed exclusively for emergency disaster response and search & rescue operations. Utilizing dual LD2410 mmWave radar sensors for micro-movement and respiratory derivation under rubble.
+            Non-invasive survivor detection system designed exclusively for emergency disaster response and search & rescue operations. Utilizing dual LD2410D mmWave radar sensors for micro-movement and respiratory derivation under rubble.
           </p>
         </div>
-        
+
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 mt-4 relative z-10">
           <button onClick={() => navigate('/')} className="border border-neon-cyan bg-transparent text-neon-cyan hover:bg-neon-cyan hover:text-[#141414] font-label-caps text-label-caps px-6 py-4 flex items-center justify-center gap-2 uppercase transition-colors w-full sm:w-auto">
             OPEN DASHBOARD <span className="font-body-reg">→</span>
           </button>
         </div>
-        
+
         {/* Terminal Output Decorative */}
         <div className="mt-12 pt-8 border-t border-surface-variant text-outline font-code-sm text-code-sm uppercase z-10">
           <div>&gt; INIT_SEQUENCE_START</div>
@@ -50,7 +50,7 @@ const Landing = () => {
               OPERATIONAL PROTOCOL
             </h3>
           </div>
-          
+
           <div className="flex flex-col gap-6 font-body-reg text-sm sm:text-base text-on-surface-variant">
             <div className="flex gap-4 items-start">
               <span className="text-[#AAFF00] font-bold mt-1">01.</span>
