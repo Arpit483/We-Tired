@@ -170,16 +170,11 @@ def score_breathing_features(f):
 # =====================================================================================
 def load_model(path, device):
     try:
-        if not HAS_TORCH:
-            raise ImportError("PyTorch not installed.")
-        logger.info("[+] Loading legacy CNN+LSTM model: %s", path)
-        model = FastCNNLSTMModel()
-        model.load_state_dict(torch.load(path, map_location=device, weights_only=True))
-        model.to(device)
-        model.eval()
-        return model
-    except Exception as exc:
-        logger.warning("[!] Legacy model load failed (%s). FFT-only mode.", exc)
+        engine = TCNInferenceEngine(path)
+        print(f"[+] TCN model loaded from {path}")
+        return engine
+    except Exception as e:
+        print(f"[!] Model load failed: {e}")
         return None
 
 
