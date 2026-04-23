@@ -313,58 +313,58 @@ def run_sensor(sensor_id, port, model, device):
         while True:
             try:
                 byte = ser.read(1)
-            if not byte:
-                continue
-            
-            char = byte.decode("utf-8", errors="ignore")
-            line_buffer += char
-            
-            if "\n" in line_buffer:
-                parts = line_buffer.split("\n")
-                line_buffer = parts[-1]
+                if not byte:
+                    continue
                 
-                for line in parts[:-1]:
-                    line = line.strip()
-                    if not line or not line.startswith("distance:"):
-                        continue
+                char = byte.decode("utf-8", errors="ignore")
+                line_buffer += char
+                
+                if "\n" in line_buffer:
+                    parts = line_buffer.split("\n")
+                    line_buffer = parts[-1]
                     
-                    distance = float(line.split(":")[1])
-                    dist_buf.append(distance)
-                    
-                    if len(dist_buf) < Config.SAMPLE_WINDOW:
-                        continue
-                    
-                    arr = np.array(dist_buf)
-                    feats = extract_breathing_features(arr)
-                    fft_conf = score_breathing_features(feats)
-                    
-                    if model is not None and HAS_TORCH:
-                        arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
-                        x_input = arr_t.unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(1, 1, 64, 64)
-                        with torch.no_grad():
-                            out = model(x_input)
-                            prob = torch.softmax(out, dim=1)[0, 1].item()
-                        ml_conf = prob
-                    else:
-                        ml_conf = fft_conf
-                    
-                    conf = max(fft_conf, ml_conf)
-                    
-                    vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
-                    votes = sum(vote_buf)
-                    detected = votes >= Config.VOTING_THRESHOLD
-                    
-                    status = "🟢 BREATHING" if detected else "⚫ NO"
-                    tee_print(f"{prefix} F:{frame:05d}  D:{distance:6.1f}  "
-                          f"Freq:{feats['peak_freq']:.3f}  Pow:{feats['peak_power']:.1f}  "
-                          f"Conf:{conf:.3f}  Votes:{votes}/{Config.VOTING_WINDOW}  {status}")
-                    
-                    # Send to web (does not affect your logic)
-                    send_to_web(sensor_id, distance, detected, conf, votes, 
-                               feats['peak_freq'], feats['peak_power'])
-                    
-                    frame += 1
-                    
+                    for line in parts[:-1]:
+                        line = line.strip()
+                        if not line or not line.startswith("distance:"):
+                            continue
+                        
+                        distance = float(line.split(":")[1])
+                        dist_buf.append(distance)
+                        
+                        if len(dist_buf) < Config.SAMPLE_WINDOW:
+                            continue
+                        
+                        arr = np.array(dist_buf)
+                        feats = extract_breathing_features(arr)
+                        fft_conf = score_breathing_features(feats)
+                        
+                        if model is not None and HAS_TORCH:
+                            arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
+                            x_input = arr_t.unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(1, 1, 64, 64)
+                            with torch.no_grad():
+                                out = model(x_input)
+                                prob = torch.softmax(out, dim=1)[0, 1].item()
+                            ml_conf = prob
+                        else:
+                            ml_conf = fft_conf
+                        
+                        conf = max(fft_conf, ml_conf)
+                        
+                        vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
+                        votes = sum(vote_buf)
+                        detected = votes >= Config.VOTING_THRESHOLD
+                        
+                        status = "🟢 BREATHING" if detected else "⚫ NO"
+                        tee_print(f"{prefix} F:{frame:05d}  D:{distance:6.1f}  "
+                              f"Freq:{feats['peak_freq']:.3f}  Pow:{feats['peak_power']:.1f}  "
+                              f"Conf:{conf:.3f}  Votes:{votes}/{Config.VOTING_WINDOW}  {status}")
+                        
+                        # Send to web (does not affect detection logic)
+                        send_to_web(sensor_id, distance, detected, conf, votes,
+                                   feats['peak_freq'], feats['peak_power'])
+                        
+                        frame += 1
+                        
             except Exception as e:
                 tee_print(f"{prefix} Error: {e}")
                 time.sleep(0.2)
