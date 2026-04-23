@@ -379,36 +379,32 @@ def api_scan_result():
 # ---------------------------------------------------------------------------
 # /api/restart  &  /api/stop
 # ---------------------------------------------------------------------------
+_deep_process = None
+_deep_process_lock = threading.Lock()
+
 @app.route("/api/restart", methods=["POST"])
 def api_restart():
-    if request.remote_addr != "127.0.0.1" and not request.remote_addr.startswith("192.168."):
-        return jsonify({"error": "Unauthorized"}), 403
-    try:
-        script = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '..', 'start.sh'))
-        if not os.path.isfile(script):
-            return jsonify({"error": f"start.sh not found: {script}"}), 500
-        subprocess.run(["pkill", "-f", "deep_optimized.py"], check=False)
-        subprocess.Popen(
-            ["/bin/bash", script],
-            cwd=os.path.dirname(script),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        return jsonify({"ok": True}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
+    global _deep_process
+    with _deep_process_lock:
+        if _deep_process and _deep_process.poll() is None:
+            _deep_process.terminate()
+        try:
+            _deep_process = subprocess.Popen(
+                ["python3", "deep_optimized.py"],
+                cwd=os.path.dirname(os.path.dirname(__file__))
+            )
+            return jsonify({"ok": True, "pid": _deep_process.pid}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
 @app.route("/api/stop", methods=["POST"])
 def api_stop():
-    if request.remote_addr != "127.0.0.1" and not request.remote_addr.startswith("192.168."):
-        return jsonify({"error": "Unauthorized"}), 403
-    try:
-        subprocess.run(["pkill", "-f", "deep_optimized.py"], check=False)
-        return jsonify({"ok": True}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    global _deep_process
+    with _deep_process_lock:
+        if _deep_process and _deep_process.poll() is None:
+            _deep_process.terminate()
+            _deep_process = None
+    return jsonify({"ok": True}), 200
 
 
 # ---------------------------------------------------------------------------
