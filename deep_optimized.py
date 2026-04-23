@@ -31,6 +31,18 @@ import json
 
 warnings.filterwarnings('ignore')
 
+# ── TCN-Attention v2 engine ──────────────────────────────
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.join(_os.path.dirname(
+    _os.path.abspath(__file__)), 'model'))
+try:
+    from model_tcn_attention_v2 import TCNInferenceEngine
+    HAS_TCN = True
+except Exception as _e:
+    print(f"[!] TCNInferenceEngine import failed: {_e}")
+    HAS_TCN = False
+    TCNInferenceEngine = None
+
 # =====================================================================================
 # CONFIGURATION
 # =====================================================================================
@@ -38,7 +50,7 @@ class Config:
     PORTS = ["/dev/ttyUSB0", "/dev/ttyUSB1"]   # <--- TWO SENSORS HERE
     BAUD = 115200
     TIMEOUT = 0.5
-    MODEL_PATH = "cnn_lstm_fast_final_model.pt"
+    MODEL_PATH = _os.path.join("model", "tcn_attention_vitalradar_v2.pt")
     SAMPLE_WINDOW = 64
     BREATH_FREQ_MIN = 0.15
     BREATH_FREQ_MAX = 0.67
@@ -292,7 +304,7 @@ def tee_print(*args, **kwargs):
     except queue.Full:
         pass
 
-def run_sensor(sensor_id, port, model, device):
+def run_sensor(sensor_id, port, tcn_engine, device):
     prefix = f"[S{sensor_id}]"
     tee_print(f"{prefix} Opening {port} ...")
     
@@ -334,34 +346,50 @@ def run_sensor(sensor_id, port, model, device):
                         if len(dist_buf) < Config.SAMPLE_WINDOW:
                             continue
                         
-                        arr = np.array(dist_buf)
-                        feats = extract_breathing_features(arr)
-                        fft_conf = score_breathing_features(feats)
-                        
-                        if model is not None and HAS_TORCH:
-                            arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
-                            x_input = arr_t.unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(1, 1, 64, 64)
-                            with torch.no_grad():
-                                out = model(x_input)
-                                prob = torch.softmax(out, dim=1)[0, 1].item()
-                            ml_conf = prob
+                        arr = np.array(dist_buf, dtype=np.float32)
+
+                        # LEGACY FILTER: commented out — replaced by TCN-Attention v2
+                        # feats = extract_breathing_features(arr)
+                        # fft_conf = score_breathing_features(feats)
+                        # if model is not None and HAS_TORCH:
+                        #     arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
+                        #     x_input = arr_t.unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(1, 1, 64, 64)
+                        #     with torch.no_grad():
+                        #         out = model(x_input)
+                        #         prob = torch.softmax(out, dim=1)[0, 1].item()
+                        #     ml_conf = prob
+                        # else:
+                        #     ml_conf = fft_conf
+                        # conf = max(fft_conf, ml_conf)
+
+                        # ── TCN-Attention v2 inference ─────────────────────────────
+                        if tcn_engine is not None:
+                            try:
+                                _detected_tcn, conf = tcn_engine.predict(arr)
+                            except Exception as _e:
+                                tee_print(f"{prefix} TCN predict error: {_e}")
+                                conf = 0.0
                         else:
-                            ml_conf = fft_conf
-                        
-                        conf = max(fft_conf, ml_conf)
-                        
+                            # Fallback: FFT-only if engine failed to load
+                            feats = extract_breathing_features(arr)
+                            conf  = score_breathing_features(feats)
+
+                        # feats is only needed for tee_print freq/power — recompute lightly
+                        # if engine ran we still need peak_freq and peak_power for the log line
+                        _feats_log = extract_breathing_features(arr)
+
                         vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
                         votes = sum(vote_buf)
                         detected = votes >= Config.VOTING_THRESHOLD
                         
                         status = "🟢 BREATHING" if detected else "⚫ NO"
                         tee_print(f"{prefix} F:{frame:05d}  D:{distance:6.1f}  "
-                              f"Freq:{feats['peak_freq']:.3f}  Pow:{feats['peak_power']:.1f}  "
+                              f"Freq:{_feats_log['peak_freq']:.3f}  Pow:{_feats_log['peak_power']:.1f}  "
                               f"Conf:{conf:.3f}  Votes:{votes}/{Config.VOTING_WINDOW}  {status}")
                         
                         # Send to web (does not affect detection logic)
                         send_to_web(sensor_id, distance, detected, conf, votes,
-                                   feats['peak_freq'], feats['peak_power'])
+                                   _feats_log['peak_freq'], _feats_log['peak_power'])
                         
                         frame += 1
                         
@@ -377,13 +405,27 @@ def run_sensor(sensor_id, port, model, device):
 # =====================================================================================
 def main():
     device = torch.device("cpu") if HAS_TORCH else "cpu"
-    model = load_model(Config.MODEL_PATH, device)
+
+    # LEGACY: old CNN+LSTM loader — kept for reference
+    # model = load_model(Config.MODEL_PATH, device)
+
+    # Load TCN-Attention v2 engine (shared across both sensor threads)
+    if HAS_TCN:
+        try:
+            tcn_engine = TCNInferenceEngine(Config.MODEL_PATH)
+            print("[+] TCNInferenceEngine v2 loaded successfully.")
+        except Exception as e:
+            print(f"[!] TCN engine load failed: {e}. Will use FFT-only.")
+            tcn_engine = None
+    else:
+        tcn_engine = None
+    model = None   # old model no longer used
     
     tee_print("\n=== STARTING TWO LD2410 SENSORS ===\n")
     
     threads = []
     for i, port in enumerate(Config.PORTS, start=1):
-        t = threading.Thread(target=run_sensor, args=(i, port, model, device))
+        t = threading.Thread(target=run_sensor, args=(i, port, tcn_engine, device))
         t.daemon = True
         t.start()
         threads.append(t)
