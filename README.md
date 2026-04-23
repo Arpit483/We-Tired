@@ -1,6 +1,4 @@
-# VitalRadar — Dual-Sensor Breathing Detection System
 
-Real-time breathing detection for disaster response using dual **LD2410 radar sensors**, a **CNN+LSTM deep learning model**, and a **React + Flask** tactical dashboard — built for **Raspberry Pi 4** deployment.
 
 ---
 
