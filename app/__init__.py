@@ -20,13 +20,13 @@ def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config['JSON_SORT_KEYS'] = False
 
-    # CRIT-01 fix: restrict HTTP CORS to /api/* and the known origin list
-    CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}})
+    # Reverted CRIT-01 strict restrictions to allow access via dynamic local network IPs
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # CRIT-01 fix: restrict Socket.IO CORS to same origin list
+    # Reverted Socket.IO CORS to allow wildcard origin access from local IP addresses
     socketio.init_app(
         app,
-        cors_allowed_origins=ALLOWED_ORIGINS,
+        cors_allowed_origins="*",
         async_mode="eventlet",
     )
 
