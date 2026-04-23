@@ -47,6 +47,14 @@ export const useSocket = () => {
       dispatch({ type: 'UPDATE_TERMINAL', payload: data });
     });
 
+    socket.on('scan_started', (data) => {
+      dispatch({ type: 'SCAN_STARTED', payload: data });
+    });
+
+    socket.on('scan_complete', (data) => {
+      dispatch({ type: 'SCAN_COMPLETE', payload: data });
+    });
+
     // Cleanup runs only when the component truly unmounts ([] dep array)
     return () => {
       socket.off('connect_error');
@@ -54,6 +62,8 @@ export const useSocket = () => {
       socket.off('disconnect');
       socket.off('sensor_update');
       socket.off('terminal_update');
+      socket.off('scan_started');
+      socket.off('scan_complete');
       socket.disconnect();
       socketRef.current = null;
     };

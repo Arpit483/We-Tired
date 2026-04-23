@@ -61,7 +61,7 @@ class Config:
     PORTS = ["/dev/ttyUSB0", "/dev/ttyUSB1"]
     BAUD = 115200
     TIMEOUT = 0.5
-    MODEL_PATH = os.path.join("model", "tcn_attention_vitalradar_v2.pt")
+    MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model', 'tcn_attention_vitalradar_v2.pt')
     SAMPLE_WINDOW = 64
     BREATH_FREQ_MIN = 0.15
     BREATH_FREQ_MAX = 0.67
@@ -181,6 +181,74 @@ def load_model(path, device):
     except Exception as exc:
         logger.warning("[!] Legacy model load failed (%s). FFT-only mode.", exc)
         return None
+
+
+# =====================================================================================
+# SCAN MODE LOGIC
+# =====================================================================================
+_scan_active   = threading.Event()   # set = scan running
+_scan_stop     = threading.Event()   # set = stop requested  
+_scan_results  = []                  # collects per-frame results during scan
+_scan_lock     = threading.Lock()
+
+def start_scan(duration=10.0):
+    """Clear results, arm scan window, auto-stop after duration seconds."""
+    _scan_stop.clear()
+    with _scan_lock:
+        _scan_results.clear()
+    _scan_active.set()
+    
+    def _scan_timer():
+        end_time = time.time() + duration
+        while time.time() < end_time:
+            if _scan_stop.is_set():
+                break
+            time.sleep(0.1)
+        _scan_active.clear()
+        
+    threading.Thread(target=_scan_timer, daemon=True).start()
+
+def stop_scan():
+    """Immediately end scan and return aggregated result dict."""
+    _scan_stop.set()
+    _scan_active.clear()
+    with _scan_lock:
+        total_frames = len(_scan_results)
+        if total_frames == 0:
+            return {
+                "human_present": False,
+                "confidence": 0.0,
+                "sensor1_votes": 0,
+                "sensor2_votes": 0,
+                "total_frames": 0,
+                "scan_duration": 0.0
+            }
+        
+        s1_votes = sum(1 for r in _scan_results if r["sensor_id"] == 1 and r["detected"])
+        s2_votes = sum(1 for r in _scan_results if r["sensor_id"] == 2 and r["detected"])
+        avg_conf = sum(r["confidence"] for r in _scan_results) / total_frames
+        
+        start_t = _scan_results[0]["timestamp"]
+        end_t = _scan_results[-1]["timestamp"]
+        dur = end_t - start_t
+
+        s1_frames = sum(1 for r in _scan_results if r["sensor_id"] == 1)
+        s2_frames = sum(1 for r in _scan_results if r["sensor_id"] == 2)
+        
+        # Decision rule: human_present = True if >50% of frames across either sensor report detected=True AND avg confidence > 0.6
+        s1_present = (s1_votes > s1_frames * 0.5) if s1_frames > 0 else False
+        s2_present = (s2_votes > s2_frames * 0.5) if s2_frames > 0 else False
+        
+        human_present = (s1_present or s2_present) and avg_conf > 0.6
+
+        return {
+            "human_present": bool(human_present),
+            "confidence": float(avg_conf),
+            "sensor1_votes": s1_votes,
+            "sensor2_votes": s2_votes,
+            "total_frames": total_frames,
+            "scan_duration": round(dur, 2)
+        }
 
 
 # =====================================================================================
@@ -409,6 +477,16 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                     freq_val = feats["peak_freq"] if Config.VERBOSE else 0.0
                     pow_val  = feats["peak_power"] if Config.VERBOSE else 0.0
                     send_to_web(sensor_id, distance, detected, conf, votes, freq_val, pow_val)
+                    
+                    if _scan_active.is_set():
+                        with _scan_lock:
+                            _scan_results.append({
+                                "sensor_id": sensor_id,
+                                "detected": detected,
+                                "confidence": float(conf),
+                                "timestamp": time.time()
+                            })
+                            
                     frame += 1
 
             except (serial.serialutil.SerialException, OSError) as hw_err:
@@ -433,17 +511,17 @@ def main():
         logger.critical(
             "[CRIT-02] Model file not found: %s\n"
             "  → Run 'python model/download_weights.py' or copy the .pt file manually.\n"
-            "  → System will run in FFT-only mode (reduced accuracy).",
+            "  → FATAL: Cannot run without model.",
             model_path,
         )
-        tcn_engine = None
+        sys.exit(1)
     elif HAS_TCN:
         try:
             tcn_engine = TCNInferenceEngine(model_path)
             logger.info("[+] TCNInferenceEngine v2 loaded: %s", model_path)
         except Exception as e:
-            logger.critical("[CRIT-02] TCN engine load failed: %s — FFT-only mode.", e)
-            tcn_engine = None
+            logger.critical("[CRIT-02] TCN engine load failed: %s — FATAL.", e)
+            sys.exit(1)
     else:
         tcn_engine = None
 

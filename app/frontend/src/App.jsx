@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import SystemHealth from './pages/SystemHealth';
 import Landing from './pages/Landing';
+import Scan from './pages/Scan';
 import Header from './components/Header';
 import { useSocket } from './hooks/useSocket';
 
@@ -23,6 +24,7 @@ const Sidebar = () => {
       <nav className="flex flex-col flex-1">
         {[
           { to: '/', icon: 'grid_view', label: 'DASHBOARD' },
+          { to: '/scan', icon: 'radar', label: 'SCAN' },
           { to: '/history', icon: 'monitor_heart', label: 'LOGS' },
           { to: '/health', icon: 'settings', label: 'DIAGNOSTICS' },
           { to: '/about', icon: 'tune', label: 'MISSION_CONFIG' },
@@ -74,6 +76,7 @@ const Layout = () => {
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/scan" element={<Scan />} />
             <Route path="/history" element={<History />} />
             <Route path="/health" element={<SystemHealth />} />
             <Route path="/about" element={<Landing />} />
@@ -85,6 +88,7 @@ const Layout = () => {
       <nav className="md:hidden fixed bottom-0 left-0 w-full h-12 bg-[#0a0a0a] border-t border-[#1a1a1a] z-50 flex justify-around items-center">
         {[
           { to: '/', icon: 'grid_view' },
+          { to: '/scan', icon: 'radar' },
           { to: '/history', icon: 'monitor_heart' },
           { to: '/health', icon: 'settings' },
           { to: '/about', icon: 'tune' },

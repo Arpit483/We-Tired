@@ -4,6 +4,7 @@ export const SensorDataContext = createContext();
 export const TerminalLogContext = createContext();
 export const SensorDispatchContext = createContext();
 export const HistoryDataContext = createContext();
+export const ScanContext = createContext();
 
 const initialState = {
   isInitializing: true,
@@ -36,6 +37,7 @@ const initialState = {
   history: [],
   terminalLines: [],
   wsConnected: false,
+  scan: { phase: 'idle', duration: 10, startedAt: null, result: null }
 };
 
 const reducer = (state, action) => {
@@ -74,6 +76,12 @@ const reducer = (state, action) => {
     }
     case 'SET_WS_CONNECTED':
       return { ...state, wsConnected: action.payload };
+    case 'SCAN_STARTED':  // payload: { duration: 10 }
+      return { ...state, scan: { phase: 'scanning', duration: action.payload.duration, startedAt: Date.now(), result: null } };
+    case 'SCAN_COMPLETE': // payload: result object from Flask
+      return { ...state, scan: { ...state.scan, phase: 'complete', result: action.payload } };
+    case 'SCAN_RESET':
+      return { ...state, scan: { phase: 'idle', duration: 10, startedAt: null, result: null } };
     default:
       return state;
   }
@@ -92,12 +100,16 @@ export const SensorProvider = ({ children }) => {
 
   const terminalData = useMemo(() => state.terminalLines, [state.terminalLines]);
 
+  const scanData = useMemo(() => state.scan, [state.scan]);
+
   return (
     <SensorDispatchContext.Provider value={dispatch}>
       <SensorDataContext.Provider value={sensorData}>
         <HistoryDataContext.Provider value={historyData}>
           <TerminalLogContext.Provider value={terminalData}>
-            {children}
+            <ScanContext.Provider value={scanData}>
+              {children}
+            </ScanContext.Provider>
           </TerminalLogContext.Provider>
         </HistoryDataContext.Provider>
       </SensorDataContext.Provider>
