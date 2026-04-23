@@ -328,6 +328,55 @@ def api_history():
 
 
 # ---------------------------------------------------------------------------
+# /api/scan/*
+# ---------------------------------------------------------------------------
+SCAN_RESULT = None
+
+@app.route("/api/scan/start", methods=["POST"])
+def api_scan_start():
+    try:
+        payload = request.get_json(force=True, silent=True) or {}
+        duration = float(payload.get("duration", 10.0))
+        
+        import sys
+        root_dir = os.path.dirname(os.path.dirname(__file__))
+        if root_dir not in sys.path:
+            sys.path.insert(0, root_dir)
+        import deep_optimized
+        
+        deep_optimized.start_scan(duration)
+        socketio.emit("scan_started", {"duration": duration})
+        return jsonify({"ok": True, "duration": duration}), 200
+    except Exception as e:
+        logger.error("Error in api_scan_start: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/scan/stop", methods=["POST"])
+def api_scan_stop():
+    global SCAN_RESULT
+    try:
+        import sys
+        root_dir = os.path.dirname(os.path.dirname(__file__))
+        if root_dir not in sys.path:
+            sys.path.insert(0, root_dir)
+        import deep_optimized
+        
+        result = deep_optimized.stop_scan()
+        SCAN_RESULT = result
+        socketio.emit("scan_complete", result)
+        return jsonify(result), 200
+    except Exception as e:
+        logger.error("Error in api_scan_stop: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/scan/result", methods=["GET"])
+def api_scan_result():
+    if SCAN_RESULT is None:
+        return jsonify({"status": "no_scan"}), 200
+    return jsonify(SCAN_RESULT), 200
+
+
+# ---------------------------------------------------------------------------
 # /api/restart  &  /api/stop
 # ---------------------------------------------------------------------------
 _deep_process = None

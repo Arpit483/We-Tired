@@ -14,11 +14,15 @@ const Landing = () => {
     setCountdown(10);
     setResult(null);
 
-    // Start the deep learning model via Flask API
+    // Start the deep learning background scan via Flask API
     try {
-      await fetch('/api/restart', { method: 'POST' });
+      await fetch('/api/scan/start', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ duration: 10.0 })
+      });
     } catch (e) {
-      console.error('Failed to start model:', e);
+      console.error('Failed to start scan:', e);
     }
 
     // Countdown from 10 to 0
@@ -29,25 +33,18 @@ const Landing = () => {
       if (count <= 0) {
         clearInterval(timerRef.current);
         setScanState('scanning');
-        // After 3 more seconds of "scanning" animation, fetch result
+        
+        // After 1.5 seconds of "scanning" animation, fetch true aggregated result
         setTimeout(async () => {
           try {
-            const res = await fetch('/api/latest');
+            const res = await fetch('/api/scan/stop', { method: 'POST' });
             const data = await res.json();
-            const detected = data?.breathing === true || data?.status === 'detected';
-            setResult(detected);
+            setResult(data?.human_present === true);
           } catch {
             setResult(false);
           }
           setScanState('result');
-
-          // Stop the model after displaying result
-          try {
-            await fetch('/api/stop', { method: 'POST' });
-          } catch (e) {
-            console.error('Failed to stop model:', e);
-          }
-        }, 3000);
+        }, 1500);
       }
     }, 1000);
   };
