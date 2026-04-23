@@ -55,7 +55,7 @@ ssh $PI_USER@$PI_IP << EOF
     chmod +x *.py *.sh
     echo "Stopping existing services..."
     pkill -f "python3 app.py" 2>/dev/null || true
-    pkill -f "python3 deep.py" 2>/dev/null || true
+    pkill -f "python3 deep_optimized.py" 2>/dev/null || true
     sleep 2
     echo "Starting Flask web server..."
     nohup python3 app.py > flask.log 2>&1 &
@@ -63,7 +63,7 @@ ssh $PI_USER@$PI_IP << EOF
     echo "Waiting for Flask to start..."
     sleep 3
     echo "Starting deep learning detection system..."
-    nohup python3 deep.py > deep.log 2>&1 &
+    nohup python3 deep_optimized.py > deep.log 2>&1 &
     DEEP_PID=\$!
     echo ""
     echo "✅ Services started successfully!"

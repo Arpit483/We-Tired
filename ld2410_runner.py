@@ -28,7 +28,7 @@ def send_to_flask(distances):
         else:
             print(f"[HTTP {r.status_code}]")
     except requests.exceptions.ConnectionError:
-        print("[ERROR] Flask not running at http://localhost:5000")
+        print("[ERROR] Flask not running at http://localhost:5050")
     except Exception as e:
         print(f"[ERROR] {e}")
 
@@ -62,7 +62,7 @@ def main():
                     print(f"[SENSOR] Distance: {dist:6.1f}cm | Buffer: {len(distance_buffer):2d}/64")
                     
                     # Send when buffer full
-                    if len(distance_buffer) >= 32:
+                    if len(distance_buffer) >= 64:
                         send_to_flask(distance_buffer)
                 
                 except KeyboardInterrupt:

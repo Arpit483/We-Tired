@@ -27,7 +27,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 # Start services
 python3 app.py &
-python3 deep.py
+python3 deep_optimized.py
 ```
 ### 3. Access Your System
 - **Web Interface**: `http://192.168.1.100:5050` (replace with your Pi's IP)
@@ -61,12 +61,12 @@ ssh pi@192.168.1.100 'sudo netstat -tulpn | grep :5050'
 3. **View Flask logs**: `ssh pi@192.168.1.100 'tail -f /home/pi/vitalradar/flask.log'`
 ### If terminal output isn't simultaneous:
 1. **Check WebSocket connection** in browser developer tools
-2. **Verify deep.py is running**: `ssh pi@192.168.1.100 'ps aux | grep deep.py'`
+2. **Verify deep_optimized.py is running**: `ssh pi@192.168.1.100 'ps aux | grep deep_optimized.py'`
 3. **Check for serial port issues**: `ssh pi@192.168.1.100 'ls -la /dev/ttyUSB*'`
 ## File Structure on Pi
 ```
 /home/pi/vitalradar/
-├── deep.py                 # Deep learning detection system
+├── deep_optimized.py       # Deep learning detection system
 ├── app.py                  # Flask web server
 ├── app/                    # Web application
 │   ├── routes.py          # API endpoints + WebSocket

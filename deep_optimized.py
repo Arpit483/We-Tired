@@ -22,7 +22,6 @@ except ImportError:
     torch = None
 import collections
 import time
-import argparse
 import threading
 from scipy import signal
 from scipy.fftpack import fft, fftfreq
@@ -67,7 +66,7 @@ class FastCNNLSTMModel(nn.Module):
         self.pool2 = nn.MaxPool2d(2)
         
         self.dropout_conv = nn.Dropout(dropout_rate)
-        self.lstm_input_size = 32 * 64
+        self.lstm_input_size = 32 * 16
         self.lstm = nn.LSTM(input_size=self.lstm_input_size,
                            hidden_size=128,
                            num_layers=1,
@@ -128,8 +127,8 @@ def extract_breathing_features(dist_array):
     features["peak_to_peak"] = np.max(filtered) - np.min(filtered)
     
     ps = fft_vals**2
-    ps /= np.sum(ps) + 1e-10
     ps = ps[ps > 0]
+    ps /= np.sum(ps) + 1e-10
     features["spectral_entropy"] = -np.sum(ps * np.log2(ps + 1e-10))
     
     zc = np.sum(np.abs(np.diff(np.sign(filtered)))) / 2
@@ -173,6 +172,19 @@ def load_model(path, device):
 # =====================================================================================
 sensor_states = {1: {}, 2: {}}
 web_lock = threading.Lock()
+
+import queue
+web_queue = queue.Queue(maxsize=100)
+
+def web_worker():
+    while True:
+        try:
+            payload = web_queue.get()
+            requests.post("http://localhost:5050/api/predict", json=payload, timeout=0.5)
+        except Exception:
+            pass
+
+threading.Thread(target=web_worker, daemon=True).start()
 
 def send_to_web(sensor_id, distance, detected, confidence, votes, freq, power):
     """Send data to web interface - does not affect your detection logic"""
@@ -245,11 +257,10 @@ def send_to_web(sensor_id, distance, detected, confidence, votes, freq, power):
             }
             
             # Send to Flask API (non-blocking)
-            threading.Thread(target=lambda: requests.post(
-                "http://localhost:5050/api/predict", 
-                json=payload, 
-                timeout=0.5
-            ), daemon=True).start()
+            try:
+                web_queue.put_nowait(payload)
+            except queue.Full:
+                pass
             
     except:
         pass  # Don't let web integration affect your detection
@@ -298,9 +309,10 @@ def run_sensor(sensor_id, port, model, device):
     line_buffer = ""
     frame = 0
     
-    while True:
-        try:
-            byte = ser.read(1)
+    try:
+        while True:
+            try:
+                byte = ser.read(1)
             if not byte:
                 continue
             
@@ -325,7 +337,17 @@ def run_sensor(sensor_id, port, model, device):
                     arr = np.array(dist_buf)
                     feats = extract_breathing_features(arr)
                     fft_conf = score_breathing_features(feats)
-                    ml_conf = fft_conf  # (using FFT-only since full matrix missing)
+                    
+                    if model is not None and HAS_TORCH:
+                        arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
+                        x_input = arr_t.unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(1, 1, 64, 64)
+                        with torch.no_grad():
+                            out = model(x_input)
+                            prob = torch.softmax(out, dim=1)[0, 1].item()
+                        ml_conf = prob
+                    else:
+                        ml_conf = fft_conf
+                    
                     conf = max(fft_conf, ml_conf)
                     
                     vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
@@ -343,9 +365,12 @@ def run_sensor(sensor_id, port, model, device):
                     
                     frame += 1
                     
-        except Exception as e:
-            tee_print(f"{prefix} Error: {e}")
-            time.sleep(0.2)
+            except Exception as e:
+                tee_print(f"{prefix} Error: {e}")
+                time.sleep(0.2)
+    finally:
+        ser.close()
+        tee_print(f"{prefix} Closed port {port}")
 
 # =====================================================================================
 # MAIN (YOUR EXACT ORIGINAL CODE)
@@ -364,8 +389,11 @@ def main():
         threads.append(t)
     
     # Keep main alive
-    while True:
-        time.sleep(1)
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        tee_print("\n=== SHUTTING DOWN ===")
 
 if __name__ == "__main__":
     main()

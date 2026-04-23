@@ -16,24 +16,10 @@ import torch.nn as nn
 import requests
 
 FLASK_URL = "http://localhost:5050/api/predict"
-FLASK_GPS_URL = "http://localhost:5050/api/gps/current"
 
 # ============================================================================
 # CONFIG
 # ============================================================================
-
-FIREBASE_DB_URL = "https://vital-radar-default-rtdb.firebaseio.com"
-
-def push_to_firebase(record):
-    ts = int(time.time() * 1000)
-    url = f"{FIREBASE_DB_URL}/vitalradar/{ts}.json"
-    print("[FIREBASE] PUT", url)
-    try:
-        r = requests.put(url, json=record, timeout=1.0)
-        print("[FIREBASE] status", r.status_code, r.text[:80])
-        r.raise_for_status()
-    except Exception as e:
-        print("[FIREBASE ERROR]", e)
 
 class Config:
     # Serial
@@ -232,25 +218,6 @@ def get_current_bs_matrix():
     return None  # replace with real implementation
 
 
-def get_current_gps():
-    """
-    Fetch current GPS coordinates from Flask API.
-    Returns (latitude, longitude) tuple or (None, None) if unavailable.
-    """
-    try:
-        r = requests.get(FLASK_GPS_URL, timeout=0.5)
-        if r.status_code == 200:
-            data = r.json()
-            if data.get("ok") and data.get("data"):
-                gps_data = data["data"]
-                lat = gps_data.get("latitude")
-                lon = gps_data.get("longitude")
-                if lat is not None and lon is not None:
-                    return (float(lat), float(lon))
-    except Exception as e:
-        if Config.VERBOSE:
-            print(f"[GPS ERROR] {e}")
-    return (None, None)
 
 def report_to_backend(distance, feats, fft_conf, dl_conf, votes, detection):
     """
@@ -268,16 +235,7 @@ def report_to_backend(distance, feats, fft_conf, dl_conf, votes, detection):
         "voting_window": int(Config.VOTING_WINDOW),
     }
     
-    # If person is detected, fetch GPS coordinates
-    if detection:
-        lat, lon = get_current_gps()
-        if lat is not None and lon is not None:
-            payload["latitude"] = lat
-            payload["longitude"] = lon
-            if Config.VERBOSE:
-                print(f"[GPS] Person detected at: {lat:.6f}, {lon:.6f}")
-    
-    # 1) Existing Flask backend (with retry logic)
+    # Existing Flask backend (with retry logic)
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -295,9 +253,6 @@ def report_to_backend(distance, feats, fft_conf, dl_conf, votes, detection):
             if Config.VERBOSE:
                 print(f"[API ERROR] {e}")
             break
-    
-    # 2) Send to Firebase
-    push_to_firebase(payload)
 
 
 # ============================================================================
@@ -344,7 +299,6 @@ def main():
     print("[*] Deep Learning Model: CNN+LSTM")
     print("[*] Detection Threshold: {:.2f} | Voting Window: {}".format(
         Config.CONFIDENCE_THRESHOLD, Config.VOTING_WINDOW))
-    print("[*] GPS enabled: Will attach coordinates on detection")
     print("-" * 160 + "\n")
 
     try:
@@ -409,28 +363,19 @@ def main():
                     avg_ms = np.mean(inference_times) * 1000.0
                     time_str = time.strftime("%H:%M:%S")
 
-                    # Get GPS if detection (will be fetched again in report_to_backend, but cache for display)
-                    gps_info = ""
-                    gps_lat, gps_lon = None, None
-                    if detection:
-                        gps_lat, gps_lon = get_current_gps()
-                        if gps_lat is not None and gps_lon is not None:
-                            gps_info = f" | GPS: {gps_lat:.6f}, {gps_lon:.6f}"
-
                     # Format votes as "XX/YY" aligned to 8 characters
                     votes_str = f"{votes:2d}/{Config.VOTING_WINDOW}"
                     print(f"{frame_count:6d} {distance:8.2f} {feats['peak_freq']:8.3f} "
                           f"{feats['peak_power']:8.1f} {feats['spectral_entropy']:8.2f} "
                           f"{fft_conf:9.3f} {dl_conf:9.3f} "
-                          f"{votes_str:>8} {status:>14} {time_str:>10}{gps_info}")
+                          f"{votes_str:>8} {status:>14} {time_str:>10}")
                     
                     # Log detection with details
                     if detection and Config.VERBOSE:
-                        gps_str = f" | GPS: {gps_lat:.6f}, {gps_lon:.6f}" if gps_lat and gps_lon else ""
                         print(f"[DETECTION] Frame {frame_count}: {status} | "
                               f"Distance: {distance:.2f}cm | "
                               f"FFT: {fft_conf:.3f} | DL: {dl_conf:.3f} | "
-                              f"Votes: {votes}/{Config.VOTING_WINDOW}{gps_str}")
+                              f"Votes: {votes}/{Config.VOTING_WINDOW}")
                     
                     report_to_backend(distance, feats, fft_conf, dl_conf, votes, detection)
 

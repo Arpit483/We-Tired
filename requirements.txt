@@ -1,7 +1,7 @@
-flask>=2.3.0
-flask-sqlalchemy>=3.0.0
-flask-socketio>=5.3.0
-flask-cors>=4.0.0
+flask==2.3.0
+flask-sqlalchemy==3.0.0
+flask-socketio==5.3.0
+flask-cors==4.0.0
 
 # -------------------------------------------------------------
 # LIGHTWEIGHT ALTERNATIVES FOR RASPBERRY PI
@@ -11,16 +11,16 @@ flask-cors>=4.0.0
 # is missing, so you can safely SKIP installing it.
 # 
 # If you want Deep Learning inference on Pi, use one of these lighter runtimes:
-onnxruntime>=1.15.0 # (~15MB, Recommended, requires converting .pt model to .onnx)
-# tflite-runtime>=2.13.0 # (~2MB, Alternative, requires converting to .tflite)
+onnxruntime==1.15.0 # (~15MB, Recommended, requires converting .pt model to .onnx)
+# tflite-runtime==2.13.0 # (~2MB, Alternative, requires converting to .tflite)
 # 
 # Or if you MUST use torch, use the Pi CPU wheel: 
 # torch==2.0.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
 # -------------------------------------------------------------
 
-numpy>=1.24.0
-scipy>=1.10.0
-requests>=2.31.0
-pyserial>=3.5
-psutil>=5.9.0
-eventlet>=0.33.3
+numpy==1.24.0
+scipy==1.10.0
+requests==2.31.0
+pyserial==3.5
+psutil==5.9.0
+eventlet==0.33.3

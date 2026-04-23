@@ -14,14 +14,14 @@ A real-time breathing detection system using CNN+LSTM deep learning models, inte
 2. **Run the System**
    ```bash
    python3 app.py &  # Start web interface
-   python3 deep.py   # Start detection system
+   python3 deep_optimized.py   # Start detection system
    ```
 3. **Access Dashboard**
    ```
    http://localhost:5050
    ```
 ## Project Structure
-- `deep.py` - Main deep learning detection engine
+- `deep_optimized.py` - Main deep learning detection engine
 - `app.py` - Flask web server
 - `app/` - Web application components
 - `cnn_lstm_fast_final_model.pt` - Trained deep learning model

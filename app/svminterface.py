@@ -55,8 +55,6 @@ def call_predict(payload):
                 votes=votes,
                 fft_conf=result.get("fft_conf", 0.0),  # FFT confidence
                 dl_conf=result.get("dl_conf", 0.0),  # Deep learning confidence
-                latitude=payload.get("latitude"),  # GPS latitude if available
-                longitude=payload.get("longitude"),  # GPS longitude if available
                 
                 # Dual sensor data
                 status=payload.get("status", "not_detected"),

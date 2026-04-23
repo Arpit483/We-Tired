@@ -5,7 +5,6 @@ Check if deep learning script is actually processing both sensors
 
 import subprocess
 import time
-import re
 
 def check_deep_learning_logs():
     """Check recent deep learning output for both sensors"""
@@ -116,7 +115,7 @@ def restart_deep_learning():
         import os
         project_dir = os.path.dirname(os.path.abspath(__file__))
         subprocess.run(['bash', '-c', 
-                       f'cd "{project_dir}" && source venv/bin/activate && nohup python3 deep_optimized.py > deep_restart.log 2>&1 &'],
+                       f'cd "{project_dir}" && nohup venv/bin/python3 deep_optimized.py > deep_restart.log 2>&1 &'],
                       capture_output=True)
         print("   🚀 Started new deep_optimized.py process")
         
