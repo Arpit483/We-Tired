@@ -7,75 +7,86 @@ import Landing from './pages/Landing';
 import Header from './components/Header';
 import { useSocket } from './hooks/useSocket';
 
-const Navigation = () => {
+const Sidebar = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
 
-  // We skip Navigation completely on Landing page to maximize space
-  if (location.pathname === '/about') return null;
-
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <nav className="hidden md:flex flex-col fixed left-0 top-12 h-[calc(100vh-48px)] w-64 z-40 bg-[#141414] text-[#AAFF00] font-mono text-xs uppercase border-r border-[#AAFF00]">
-        <div className="p-4 border-b border-[#AAFF00]/30">
-          <div className="font-black text-[#AAFF00] text-sm">[ SENSOR_01 ]</div>
-          <div className="text-[#AAFF00]/70 mt-1">STATUS: ● ACTIVE</div>
-        </div>
-        <div className="flex-1 flex flex-col">
-          <Link to="/" className={`${isActive('/') ? 'bg-[#AAFF00] text-[#141414] font-bold' : 'text-[#AAFF00] hover:bg-[#AAFF00]/10 border-b border-[#AAFF00]/30'} w-full flex items-center gap-2 p-3 cursor-pointer transition-colors`}>
-            <span className="material-symbols-outlined text-[18px]">grid_view</span> DASHBOARD
+    <aside className="hidden md:flex flex-col w-52 shrink-0 bg-[#0a0a0a] border-r border-[#1a1a1a] h-[calc(100vh-44px)] sticky top-11">
+      {/* Operator info */}
+      <div className="p-4 border-b border-[#1a1a1a]">
+        <div className="text-[#AAFF00] font-mono text-[10px] font-bold tracking-widest uppercase">SYS_OPERATOR</div>
+        <div className="text-zinc-500 font-mono text-[9px] mt-0.5 tracking-wider">SECTOR_07_ACTIVE</div>
+      </div>
+
+      {/* Nav items */}
+      <nav className="flex flex-col flex-1">
+        {[
+          { to: '/', icon: 'grid_view', label: 'DASHBOARD' },
+          { to: '/history', icon: 'monitor_heart', label: 'LOGS' },
+          { to: '/health', icon: 'settings', label: 'DIAGNOSTICS' },
+          { to: '/about', icon: 'tune', label: 'MISSION_CONFIG' },
+        ].map(({ to, icon, label }) => (
+          <Link
+            key={to}
+            to={to}
+            className={`flex items-center gap-3 px-4 py-3 font-mono text-[11px] font-bold tracking-widest uppercase border-b border-[#141414] transition-colors ${
+              isActive(to)
+                ? 'bg-[#AAFF00] text-[#0a0a0a]'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#111]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">{icon}</span>
+            {label}
           </Link>
-          <Link to="/history" className={`${isActive('/history') ? 'bg-[#AAFF00] text-[#141414] font-bold' : 'text-[#AAFF00] hover:bg-[#AAFF00]/10 border-b border-[#AAFF00]/30'} w-full flex items-center gap-2 p-3 cursor-pointer transition-colors`}>
-            <span className="material-symbols-outlined text-[18px]">monitor_heart</span> BIO_METRICS
-          </Link>
-          <Link to="/health" className={`${isActive('/health') ? 'bg-[#AAFF00] text-[#141414] font-bold' : 'text-[#AAFF00] hover:bg-[#AAFF00]/10 border-b border-[#AAFF00]/30'} w-full flex items-center gap-2 p-3 cursor-pointer transition-colors`}>
-            <span className="material-symbols-outlined text-[18px]">settings</span> CONFIG
-          </Link>
-          <Link to="/about" className="text-[#AAFF00] hover:bg-[#AAFF00]/10 w-full flex items-center gap-2 p-3 border-b border-[#AAFF00]/30 cursor-pointer transition-colors">
-            <span className="material-symbols-outlined text-[18px]">info</span> ABOUT
-          </Link>
-        </div>
+        ))}
       </nav>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full h-14 bg-[#141414] border-t border-[#AAFF00] z-50 flex justify-around items-center text-xs font-mono uppercase">
-        <Link to="/" className={`${isActive('/') ? 'text-[#AAFF00] border-t-2 border-[#AAFF00] font-bold' : 'text-outline'} flex flex-col items-center justify-center w-full h-full transition-colors`}>
-          <span className="material-symbols-outlined text-[20px]">grid_view</span>
-        </Link>
-        <Link to="/history" className={`${isActive('/history') ? 'text-[#AAFF00] border-t-2 border-[#AAFF00] font-bold' : 'text-outline'} flex flex-col items-center justify-center w-full h-full transition-colors`}>
-          <span className="material-symbols-outlined text-[20px]">monitor_heart</span>
-        </Link>
-        <Link to="/health" className={`${isActive('/health') ? 'text-[#AAFF00] border-t-2 border-[#AAFF00] font-bold' : 'text-outline'} flex flex-col items-center justify-center w-full h-full transition-colors`}>
-          <span className="material-symbols-outlined text-[20px]">settings</span>
-        </Link>
-        <Link to="/about" className={`${isActive('/about') ? 'text-[#AAFF00] border-t-2 border-[#AAFF00] font-bold' : 'text-outline'} flex flex-col items-center justify-center w-full h-full transition-colors`}>
-          <span className="material-symbols-outlined text-[20px]">info</span>
-        </Link>
-      </nav>
-    </>
+      {/* Power Off */}
+      <div className="border-t border-[#1a1a1a] p-4">
+        <div className="flex items-center gap-2 text-zinc-600 font-mono text-[10px] tracking-widest cursor-pointer hover:text-red-400 transition-colors">
+          <span className="material-symbols-outlined text-[14px]">power_settings_new</span>
+          POWER_OFF
+        </div>
+      </div>
+    </aside>
   );
 };
 
 const Layout = () => {
-  useSocket(); // connect socket
+  useSocket();
   const location = useLocation();
   const isAbout = location.pathname === '/about';
 
   return (
-    <>
+    <div className="flex flex-col h-screen overflow-hidden bg-[#0a0a0a]">
       <Header />
-      <Navigation />
-      {/* Content Canvas */}
-      <div className={`flex-1 flex flex-col pt-12 pb-14 md:pb-0 min-h-screen ${!isAbout ? 'md:pl-64' : ''}`}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/health" element={<SystemHealth />} />
-          <Route path="/about" element={<Landing />} />
-        </Routes>
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/health" element={<SystemHealth />} />
+            <Route path="/about" element={<Landing />} />
+          </Routes>
+        </main>
       </div>
-    </>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 w-full h-12 bg-[#0a0a0a] border-t border-[#1a1a1a] z-50 flex justify-around items-center">
+        {[
+          { to: '/', icon: 'grid_view' },
+          { to: '/history', icon: 'monitor_heart' },
+          { to: '/health', icon: 'settings' },
+          { to: '/about', icon: 'tune' },
+        ].map(({ to, icon }) => (
+          <Link key={to} to={to} className={`flex items-center justify-center w-full h-full ${location.pathname === to ? 'text-[#AAFF00]' : 'text-zinc-600'}`}>
+            <span className="material-symbols-outlined text-[20px]">{icon}</span>
+          </Link>
+        ))}
+      </nav>
+    </div>
   );
 };
 
