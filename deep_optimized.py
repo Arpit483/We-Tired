@@ -66,15 +66,9 @@ class Config:
     SAMPLE_WINDOW = 64
     BREATH_FREQ_MIN = 0.15
     BREATH_FREQ_MAX = 0.67
-<<<<<<< HEAD
     CONFIDENCE_THRESHOLD = 0.65   # BUG-02 fix: match model's own detect threshold (>0.65)
     VOTING_WINDOW = 32
     VOTING_THRESHOLD = 16          # BUG-03 fix: 50% of window — consistent with api/scan/stop rule
-=======
-    CONFIDENCE_THRESHOLD = 0.65   # audit fix: match model's own detect threshold
-    VOTING_WINDOW = 32
-    VOTING_THRESHOLD = 16          # audit fix: 50% of window
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
     SAMPLE_PERIOD = 0.1
     VERBOSE = True
     SHOW_FEATURES = True
