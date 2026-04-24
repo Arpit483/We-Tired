@@ -267,10 +267,11 @@ web_queue = queue.Queue(maxsize=100)
 
 def web_worker():
     """Background thread: drain web_queue and POST to Flask."""
+    session = requests.Session()
     while True:
         try:
             payload = web_queue.get()
-            requests.post("http://localhost:5050/api/predict", json=payload, timeout=0.5)
+            session.post("http://localhost:5050/api/predict", json=payload, timeout=0.5)
         except requests.exceptions.RequestException:
             pass  # Flask may not be up yet; silently retry
         except Exception as exc:
@@ -366,12 +367,24 @@ terminal_queue = queue.Queue(maxsize=1000)
 
 
 def terminal_worker():
+    session = requests.Session()
     while True:
         try:
+            # Block until at least one message is available
             msg = terminal_queue.get()
-            requests.post(
+            batch = [msg]
+            
+            # Drain any additional messages currently in the queue without blocking
+            while True:
+                try:
+                    batch.append(terminal_queue.get_nowait())
+                except queue.Empty:
+                    break
+            
+            # Send all messages in one request separated by newlines
+            session.post(
                 "http://localhost:5050/api/terminal",
-                json={"line": msg},
+                json={"line": "\n".join(batch)},
                 timeout=0.5,
             )
         except requests.exceptions.RequestException:

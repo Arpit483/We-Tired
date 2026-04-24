@@ -192,6 +192,7 @@ def api_predict():
         try:
             with sqlite3.connect(db_path) as conn:
                 cur = conn.cursor()
+                cur.execute("PRAGMA journal_mode=WAL")
                 cur.execute(
                     "CREATE TABLE IF NOT EXISTS predictions "
                     "(id INTEGER PRIMARY KEY AUTOINCREMENT, raw_json TEXT, timestamp INTEGER)"
@@ -243,8 +244,10 @@ def api_terminal():
             return jsonify({"error": "Payload must be a JSON object"}), 400
         line = payload.get("line", "")
         if line:
-            notify_terminal(line)
-            socketio.emit("terminal_update", {"line": line})
+            for l in line.split("\n"):
+                if l:
+                    notify_terminal(l)
+                    socketio.emit("terminal_update", {"line": l})
         return jsonify({"ok": True}), 200
     except Exception as e:
         logger.error("Error in api_terminal: %s", e)
@@ -317,6 +320,7 @@ def api_history():
         history_data = []
         with sqlite3.connect(db_path) as conn:
             cur = conn.cursor()
+            cur.execute("PRAGMA journal_mode=WAL")
             cur.execute("SELECT raw_json FROM predictions ORDER BY id DESC LIMIT 500")
             rows = cur.fetchall()
 
