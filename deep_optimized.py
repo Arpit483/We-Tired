@@ -26,6 +26,7 @@ import time
 import threading
 from scipy import signal
 from scipy.fftpack import fft, fftfreq
+from scipy.signal import spectrogram as sp_spectrogram
 import warnings
 import requests
 import json
@@ -502,6 +503,7 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                         fft_conf = score_breathing_features(feats)
                         
                         if model is not None and HAS_TORCH:
+<<<<<<< HEAD
                             arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
                             # Fix: reshape 64-sample 1D window into 8x8 spatial grid.
                             # The old expand(1,1,64,64) created a 64x64 image by duplicating
@@ -513,6 +515,41 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                                 prob = torch.softmax(out, dim=1)[0, 1].item()
                             ml_conf = prob
 >>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
+=======
+                            try:
+                                # Build a 64x64 STFT spectrogram from the 64-sample window.
+                                # The CNN was trained on 2D spectrograms, NOT on flat arrays.
+                                # lstm_input_size = 32*16 = 512 requires spatial H=64 after
+                                # two MaxPool2d(2) layers: 64/2/2 = 16 -> 32*16 = 512. ✓
+                                #
+                                # scipy.signal.spectrogram: nperseg=16, noverlap=12
+                                # → freq bins = 9, time frames = variable; we resize to 64x64
+                                f_bins, t_frames, Sxx = sp_spectrogram(
+                                    arr,
+                                    fs=1.0 / Config.SAMPLE_PERIOD,   # 10 Hz
+                                    nperseg=16,
+                                    noverlap=12,
+                                    scaling='spectrum'
+                                )
+                                # Sxx shape: (freq_bins, time_frames) → resize to (64, 64)
+                                from scipy.ndimage import zoom
+                                zh = 64.0 / Sxx.shape[0]
+                                zw = 64.0 / Sxx.shape[1]
+                                Sxx_resized = zoom(Sxx, (zh, zw), order=1)
+                                # Log-power, normalised to [0,1]
+                                Sxx_log = np.log1p(np.abs(Sxx_resized))
+                                Sxx_norm = (Sxx_log - Sxx_log.min()) / (Sxx_log.max() - Sxx_log.min() + 1e-8)
+                                arr_t = torch.tensor(Sxx_norm, dtype=torch.float32).to(device)
+                                x_input = arr_t.unsqueeze(0).unsqueeze(0)  # [1,1,64,64]
+                                with torch.no_grad():
+                                    out = model(x_input)
+                                    prob = torch.softmax(out, dim=1)[0, 1].item()
+                                ml_conf = float(prob)
+                            except Exception as model_err:
+                                # Fall back to FFT confidence if model forward fails
+                                tee_print(f"{prefix} [WARN] Model inference failed: {model_err}")
+                                ml_conf = fft_conf
+>>>>>>> 6f94a901898fba7114d5f83cee6dc91877b355fe
                         else:
                             conf = score_breathing_features(feats)
 
