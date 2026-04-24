@@ -302,16 +302,18 @@ def api_system():
 # /api/model  (static metadata -- no model file needed)
 # ---------------------------------------------------------------------------
 @app.route("/api/model")
-def api_model():
+def api_scan_model():
+    # ISSUE-A fix: reflect actual Config values used in deep_optimized.py
+    # (BUG-02: 0.65 not 0.88) (BUG-03: 16 not 22)
     return jsonify({
         "name": "VitalRadar TCN-Attention v2",
         "window_size": 64,
         "freq_min": 0.15,
         "freq_max": 0.67,
-        "confidence_threshold": 0.88,
-        "detect_threshold": 0.65,
+        "confidence_threshold": 0.65,   # matches deep_optimized Config.CONFIDENCE_THRESHOLD
+        "detect_threshold": 0.65,       # matches model_tcn_attention_v2 predict_confidence()
         "voting_window": 32,
-        "voting_threshold": 22,
+        "voting_threshold": 16,         # matches deep_optimized Config.VOTING_THRESHOLD
     }), 200
 
 

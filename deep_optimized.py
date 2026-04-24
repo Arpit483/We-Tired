@@ -233,11 +233,15 @@ def stop_scan():
         s1_frames = sum(1 for r in _scan_results if r["sensor_id"] == 1)
         s2_frames = sum(1 for r in _scan_results if r["sensor_id"] == 2)
         
-        # Decision rule: human_present = True if >50% of frames across either sensor report detected=True AND avg confidence > 0.6
+        # Decision rule: human_present = True if >50% of frames across either
+        # sensor report detected=True.
+        # ISSUE-B fix: removed the secondary avg_conf > 0.6 gate — it blocked
+        # valid detections at 0.65–0.69 confidence. The model's own >0.65
+        # threshold (predict_confidence) and the 50% vote majority are sufficient.
         s1_present = (s1_votes > s1_frames * 0.5) if s1_frames > 0 else False
         s2_present = (s2_votes > s2_frames * 0.5) if s2_frames > 0 else False
         
-        human_present = (s1_present or s2_present) and avg_conf > 0.6
+        human_present = s1_present or s2_present
 
         return {
             "human_present": bool(human_present),
@@ -298,13 +302,15 @@ def send_to_web(sensor_id, distance, detected, confidence, votes, freq, power):
             elif not s1_detected and not s2_detected:
                 status, direction = "not_detected", "none"
             elif s1_detected:
-                # Only emit high_chance when solo sensor has strong vote consensus
+                # Only emit high_chance when solo sensor has strong consensus
                 s1_votes = s1.get("votes", 0)
-                status = "high_chance" if s1_votes >= 20 else "not_detected"
+                # ISSUE-D fix: use Config.VOTING_THRESHOLD instead of hardcoded 20
+                status = "high_chance" if s1_votes >= Config.VOTING_THRESHOLD else "not_detected"
                 direction = "move_right" if status == "high_chance" else "none"
             else:
                 s2_votes = s2.get("votes", 0)
-                status = "high_chance" if s2_votes >= 20 else "not_detected"
+                # ISSUE-D fix: use Config.VOTING_THRESHOLD instead of hardcoded 20
+                status = "high_chance" if s2_votes >= Config.VOTING_THRESHOLD else "not_detected"
                 direction = "move_left" if status == "high_chance" else "none"
 
             payload = {
