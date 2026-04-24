@@ -474,76 +474,6 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                             except Exception as tcn_err:
                                 logger.error("%s TCN predict error: %s", prefix, tcn_err)
                                 conf = score_breathing_features(feats)  # fallback
-=======
-                line_buffer += char
-                
-                if "\n" in line_buffer:
-                    parts = line_buffer.split("\n")
-                    line_buffer = parts[-1]
-                    
-                    for line in parts[:-1]:
-                        line = line.strip()
-                        if not line or not line.startswith("distance:"):
-                            continue
-                        
-                        distance = float(line.split(":")[1])
-                        dist_buf.append(distance)
-                        
-                        if len(dist_buf) < Config.SAMPLE_WINDOW:
-                            continue
-                        
-                        arr = np.array(dist_buf)
-                        feats = extract_breathing_features(arr)
-                        fft_conf = score_breathing_features(feats)
-                        
-                        if model is not None and HAS_TORCH:
-<<<<<<< HEAD
-                            arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
-                            # Fix: reshape 64-sample 1D window into 8x8 spatial grid.
-                            # The old expand(1,1,64,64) created a 64x64 image by duplicating
-                            # rows — feeding meaningless spatial structure to the CNN and
-                            # producing garbage softmax values near 1.0 on every frame.
-                            x_input = arr_t.view(1, 1, 8, 8)
-                            with torch.no_grad():
-                                out = model(x_input)
-                                prob = torch.softmax(out, dim=1)[0, 1].item()
-                            ml_conf = prob
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
-=======
-                            try:
-                                # Build a 64x64 STFT spectrogram from the 64-sample window.
-                                # The CNN was trained on 2D spectrograms, NOT on flat arrays.
-                                # lstm_input_size = 32*16 = 512 requires spatial H=64 after
-                                # two MaxPool2d(2) layers: 64/2/2 = 16 -> 32*16 = 512. ✓
-                                #
-                                # scipy.signal.spectrogram: nperseg=16, noverlap=12
-                                # → freq bins = 9, time frames = variable; we resize to 64x64
-                                f_bins, t_frames, Sxx = sp_spectrogram(
-                                    arr,
-                                    fs=1.0 / Config.SAMPLE_PERIOD,   # 10 Hz
-                                    nperseg=16,
-                                    noverlap=12,
-                                    scaling='spectrum'
-                                )
-                                # Sxx shape: (freq_bins, time_frames) → resize to (64, 64)
-                                from scipy.ndimage import zoom
-                                zh = 64.0 / Sxx.shape[0]
-                                zw = 64.0 / Sxx.shape[1]
-                                Sxx_resized = zoom(Sxx, (zh, zw), order=1)
-                                # Log-power, normalised to [0,1]
-                                Sxx_log = np.log1p(np.abs(Sxx_resized))
-                                Sxx_norm = (Sxx_log - Sxx_log.min()) / (Sxx_log.max() - Sxx_log.min() + 1e-8)
-                                arr_t = torch.tensor(Sxx_norm, dtype=torch.float32).to(device)
-                                x_input = arr_t.unsqueeze(0).unsqueeze(0)  # [1,1,64,64]
-                                with torch.no_grad():
-                                    out = model(x_input)
-                                    prob = torch.softmax(out, dim=1)[0, 1].item()
-                                ml_conf = float(prob)
-                            except Exception as model_err:
-                                # Fall back to FFT confidence if model forward fails
-                                tee_print(f"{prefix} [WARN] Model inference failed: {model_err}")
-                                ml_conf = fft_conf
->>>>>>> 6f94a901898fba7114d5f83cee6dc91877b355fe
                         else:
                             conf = score_breathing_features(feats)
 
@@ -560,7 +490,7 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                         vote_buf.append(1 if _detected_tcn else 0)
                     else:
                         vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
-<<<<<<< HEAD
+
                     votes    = sum(vote_buf)
                     detected = votes >= Config.VOTING_THRESHOLD
 
@@ -573,7 +503,8 @@ def run_sensor(sensor_id, port, tcn_engine, device):
 
                     freq_val = feats["peak_freq"] if Config.VERBOSE else 0.0
                     pow_val  = feats["peak_power"] if Config.VERBOSE else 0.0
-                    send_to_web(sensor_id, distance, detected, conf, votes, freq_val, pow_val)
+                    # Send to web — convert cm to metres for UI display
+                    send_to_web(sensor_id, distance / 100.0, detected, float(conf), votes, freq_val, pow_val)
                     
                     if _scan_active.is_set():
                         with _scan_lock:
@@ -593,25 +524,6 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                 logger.warning("%s Parse error: %s", prefix, parse_err)
                 # continue without sleeping; next byte will arrive shortly
 
-=======
-                        votes = sum(vote_buf)
-                        detected = votes >= Config.VOTING_THRESHOLD
-                        
-                        status = "🟢 BREATHING" if detected else "⚫ NO"
-                        tee_print(f"{prefix} F:{frame:05d}  D:{distance:6.1f}  "
-                              f"Freq:{feats['peak_freq']:.3f}  Pow:{feats['peak_power']:.1f}  "
-                              f"Conf:{conf:.3f}  Votes:{votes}/{Config.VOTING_WINDOW}  {status}")
-                        
-                        # Send to web — convert cm to metres for UI display
-                        send_to_web(sensor_id, distance / 100.0, detected, conf, votes,
-                                   feats['peak_freq'], feats['peak_power'])
-                        
-                        frame += 1
-                        
-            except Exception as e:
-                tee_print(f"{prefix} Error: {e}")
-                time.sleep(0.2)
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
     finally:
         ser.close()
         tee_print(f"{prefix} Closed port {port}")
