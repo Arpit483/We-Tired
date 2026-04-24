@@ -1,5 +1,6 @@
 import React from 'react';
 
+<<<<<<< HEAD
 // Mini bar chart for WAVEFORM_DELTA
 const WaveformDelta = ({ color, samples }) => {
   const defaultHeights = [30, 50, 70, 45, 80, 55, 65, 40, 75, 60, 85, 50];
@@ -14,21 +15,24 @@ const WaveformDelta = ({ color, samples }) => {
   } else {
     heights = defaultHeights;
   }
+=======
+// Real-time signal power indicator driven by actual sensor data
+const WaveformDelta = ({ color, power }) => {
+  // Normalise: typical peak_power from FFT is 0-500+ units; cap at 300 for display
+  const normalised = Math.min(1.0, (power || 0) / 300);
+  const pct = (normalised * 100).toFixed(1);
+>>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
   return (
     <div className="mt-3">
-      <div className="font-mono text-[9px] text-zinc-600 tracking-widest mb-2 uppercase">WAVEFORM_DELTA</div>
-      <div className="flex items-end gap-[3px] h-10">
-        {heights.map((h, i) => (
-          <div
-            key={i}
-            className="flex-1 rounded-sm opacity-80"
-            style={{
-              height: `${h}%`,
-              backgroundColor: color,
-              opacity: 0.6 + (i % 3) * 0.15,
-            }}
-          />
-        ))}
+      <div className="flex items-center justify-between mb-1">
+        <div className="font-mono text-[9px] text-zinc-600 tracking-widest uppercase">SIGNAL_POWER</div>
+        <div className="font-mono text-[9px] tracking-widest" style={{ color }}>{pct}%</div>
+      </div>
+      <div className="h-2 w-full bg-[#111] overflow-hidden rounded-sm">
+        <div
+          className="h-full rounded-sm transition-all duration-200"
+          style={{ width: `${pct}%`, backgroundColor: color, boxShadow: `0 0 6px ${color}60` }}
+        />
       </div>
     </div>
   );
@@ -47,8 +51,11 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
   const votingWindow = data.voting_window || 32;
   const freq = data.freq || 0;
   const power = data.power || 0;
+<<<<<<< HEAD
 
   const displayDist = (distance / 100).toFixed(2);
+=======
+>>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
 
   const orderClass = isLeft ? 'order-2 md:order-1' : 'order-3 md:order-3';
 
@@ -106,7 +113,11 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
         <div className={!isLeft ? 'text-right' : ''}>
           <div className="text-zinc-600 font-mono text-[9px] uppercase tracking-widest mb-1">Target_Distance</div>
           <div className={`${colorClass} font-mono text-4xl font-black leading-none`}>
+<<<<<<< HEAD
             {displayDist}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
+=======
+            {distance.toFixed(2)}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
+>>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
           </div>
         </div>
 
@@ -124,8 +135,13 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Waveform */}
         <WaveformDelta color={color} samples={samples} />
+=======
+        {/* Live signal power bar */}
+        <WaveformDelta color={color} power={power} />
+>>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
 
         {/* Breathing status */}
         <div className="mt-auto">
