@@ -175,8 +175,13 @@ def api_predict():
         global _scan_active, _scan_results
         with _scan_lock:
             if _scan_active:
+                # BUG-10 fix: Use OR logic (left or right) instead of strict AND.
+                # Since sensors run asynchronously, requiring them to both report True
+                # on the exact same millisecond frame is too strict.
+                is_detected = payload.get("left_detected", False) or payload.get("right_detected", False)
+                
                 _scan_results.append({
-                    "detected":   bool(payload.get("breathing", False)),
+                    "detected":   bool(is_detected),
                     "confidence": float(payload.get("dl_conf",
                                         payload.get("fft_conf",
                                         payload.get("entropy", 0.0)))),
