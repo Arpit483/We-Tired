@@ -65,9 +65,9 @@ class Config:
     SAMPLE_WINDOW = 64
     BREATH_FREQ_MIN = 0.15
     BREATH_FREQ_MAX = 0.67
-    CONFIDENCE_THRESHOLD = 0.88   # raised from 0.85 — only very-confident frames vote YES
+    CONFIDENCE_THRESHOLD = 0.65   # BUG-02 fix: match model's own detect threshold (>0.65)
     VOTING_WINDOW = 32
-    VOTING_THRESHOLD = 22          # raised from 18 — stricter consensus (69% of window)
+    VOTING_THRESHOLD = 16          # BUG-03 fix: 50% of window — consistent with api/scan/stop rule
     SAMPLE_PERIOD = 0.1
     VERBOSE = True
     SHOW_FEATURES = True
@@ -451,12 +451,13 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                     feats = extract_breathing_features(arr)
 
                     # ── Flat-signal sanity check (dead sensor or bare wall) ────
-                    # If the last 5 distances are all within 0.5 cm of each other,
-                    # the sensor is either dead or pointed at a static reflector.
-                    # Force confidence to 0 to avoid false positives.
-                    last5 = list(dist_buf)[-5:] if len(dist_buf) >= 5 else list(dist_buf)
-                    if len(last5) >= 5 and (max(last5) - min(last5)) < 0.5:
-                        conf = 0.0
+                    # BUG-07 fix: use 10-sample window (was 5) and 0.2 cm threshold (was 0.5).
+                    # Breathing under rubble produces <0.5 cm micro-motion — the old threshold
+                    # was silencing real detections on calm, nearby subjects.
+                    last10 = list(dist_buf)[-10:] if len(dist_buf) >= 10 else list(dist_buf)
+                    _detected_tcn = False
+                    if len(last10) >= 10 and (max(last10) - min(last10)) < 0.2:
+                        conf = 0.0   # truly dead sensor / bare wall
                     else:
                         # ── TCN-Attention v2 inference (MED-07: no tcn_lock needed) ──
                         if tcn_engine is not None:
@@ -474,7 +475,13 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                     else:
                         freq_str = pow_str = "-"
 
-                    vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
+                    # BUG-06 fix: trust the model's own detected boolean (threshold >0.65)
+                    # instead of applying a second conf>0.88 gate that contradicts the model.
+                    # For the FFT fallback path, use conf>CONFIDENCE_THRESHOLD (0.65) as before.
+                    if tcn_engine is not None:
+                        vote_buf.append(1 if _detected_tcn else 0)
+                    else:
+                        vote_buf.append(1 if conf > Config.CONFIDENCE_THRESHOLD else 0)
                     votes    = sum(vote_buf)
                     detected = votes >= Config.VOTING_THRESHOLD
 

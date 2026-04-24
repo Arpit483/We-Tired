@@ -8,14 +8,30 @@ const Landing = () => {
   const [scanData, setScanData] = useState(null);   // full API response from /api/scan/stop
   const timerRef = useRef(null);
 
+  // BUG-09 fix: use relative URLs — works on any deployment host (Pi, staging, etc.)
+  const API = '';   // empty string = same-origin relative paths
+
+  // BUG-01 + BUG-04 fix: poll /api/scan/result before calling stop to confirm
+  // deep_optimized has sent at least 1 frame into the scan window.
+  const pollUntilFrames = async (maxAttempts = 5, intervalMs = 500) => {
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const r = await fetch(`${API}/api/scan/result`);
+        const d = await r.json();
+        if (d.frames_so_far > 0) return true;   // frames are flowing — safe to stop
+      } catch { /* ignore, just try again */ }
+      await new Promise(res => setTimeout(res, intervalMs));
+    }
+    return false;  // no frames after all attempts — stop anyway, UI will show scan_failed
+  };
+
   const startScan = async () => {
     setScanState('countdown');
     setCountdown(10);
     setScanData(null);
 
-    // Start the deep learning background scan via Flask API
     try {
-      await fetch('http://localhost:5050/api/scan/start', { 
+      await fetch(`${API}/api/scan/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ duration: 10.0 })
@@ -32,18 +48,19 @@ const Landing = () => {
       if (count <= 0) {
         clearInterval(timerRef.current);
         setScanState('scanning');
-        
-        // After 1.5 seconds of "scanning" animation, fetch true aggregated result
-        setTimeout(async () => {
+
+        // BUG-01 fix: wait for frames before stopping instead of a hard 1.5s delay
+        (async () => {
+          await pollUntilFrames(5, 500);   // up to 2.5 s extra wait for frames
           try {
-            const res = await fetch('http://localhost:5050/api/scan/stop', { method: 'POST' });
+            const res = await fetch(`${API}/api/scan/stop`, { method: 'POST' });
             const data = await res.json();
             setScanData(data);
           } catch {
-            setScanData({ result: 'no_human', detected_frames: 0, total_frames: 0, confidence_avg: 0 });
+            setScanData({ result: 'scan_failed', detected_frames: 0, total_frames: 0, confidence_avg: 0 });
           }
           setScanState('result');
-        }, 1500);
+        })();
       }
     }, 1000);
   };
@@ -155,7 +172,7 @@ const Landing = () => {
             </div>
           )}
 
-          {/* SCANNING STATE */}
+          {/* SCANNING STATE — shown while polling for frames then fetching result */}
           {scanState === 'scanning' && (
             <div className="flex flex-col items-center gap-6 py-4">
               <div className="text-[#00CFFF] font-mono text-[11px] tracking-widest uppercase animate-pulse">
@@ -190,7 +207,37 @@ const Landing = () => {
 
           {/* RESULT STATE */}
           {scanState === 'result' && (() => {
-            const detected = scanData?.result === 'human_detected';
+            const result = scanData?.result;
+            const detected = result === 'human_detected';
+            const failed   = result === 'scan_failed' || !result;
+
+            // BUG-08: distinct failed state — no data received at all
+            if (failed) {
+              return (
+                <div className="flex flex-col items-center gap-6">
+                  <div className="text-amber-400 font-mono text-[11px] tracking-widest uppercase">
+                    SCAN FAILED
+                  </div>
+                  <div className="w-32 h-32 rounded-full flex items-center justify-center border-4 border-amber-400 bg-amber-400/10">
+                    <span className="material-symbols-outlined text-[56px] text-amber-400">sensors_off</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-mono text-2xl font-black tracking-tight mb-1 text-amber-400">
+                      ⚠ NO DATA RECEIVED
+                    </div>
+                    <div className="text-zinc-500 font-mono text-[11px] tracking-wider leading-relaxed px-2">
+                      The radar sensor sent no frames during the scan window.
+                      Is deep_optimized.py running? Is the sensor connected?
+                    </div>
+                  </div>
+                  <button onClick={resetScan}
+                    className="w-full border border-amber-400 text-amber-400 font-mono font-bold text-[12px] uppercase py-3 hover:bg-amber-400 hover:text-[#0a0a0a] transition-colors tracking-widest">
+                    TRY AGAIN
+                  </button>
+                </div>
+              );
+            }
+
             return (
               <div className="flex flex-col items-center gap-6">
                 <div className={`text-[11px] font-mono tracking-widest uppercase ${detected ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>

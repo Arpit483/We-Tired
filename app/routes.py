@@ -361,17 +361,11 @@ def api_scan_start():
         _scan_active = True
         _scan_results = []
 
-    # Also tell deep_optimized (if it is running as a subprocess) to begin its
-    # scan window — best-effort, ignore if not available.
-    try:
-        import sys
-        root_dir = os.path.dirname(os.path.dirname(__file__))
-        if root_dir not in sys.path:
-            sys.path.insert(0, root_dir)
-        import deep_optimized
-        deep_optimized.start_scan(10.0)
-    except Exception:
-        pass
+    # BUG-05 fix: removed 'import deep_optimized; deep_optimized.start_scan()'
+    # That call imported a fresh module copy, not the running subprocess —
+    # the Event objects in the subprocess are different in-memory objects.
+    # The Flask-side _scan_results list is the sole collection mechanism;
+    # deep_optimized posts to /api/predict during the window, which appends here.
 
     socketio.emit("scan_started", {"duration": 10})
     return jsonify({"ok": True, "duration": 10}), 200
@@ -386,16 +380,8 @@ def api_scan_stop():
         frames = list(_scan_results)   # snapshot before clearing
         _scan_results = []
 
-    # Also stop deep_optimized scan window — best-effort.
-    try:
-        import sys
-        root_dir = os.path.dirname(os.path.dirname(__file__))
-        if root_dir not in sys.path:
-            sys.path.insert(0, root_dir)
-        import deep_optimized
-        deep_optimized.stop_scan()
-    except Exception:
-        pass
+    # BUG-05 fix: removed the 'import deep_optimized; deep_optimized.stop_scan()' call
+    # for the same reason — it targets a fresh module copy, not the live subprocess.
 
     total_frames    = len(frames)
     detected_frames = sum(1 for f in frames if f["detected"])
@@ -403,11 +389,15 @@ def api_scan_stop():
         sum(f["confidence"] for f in frames) / total_frames
         if total_frames > 0 else 0.0
     )
-    final = (
-        "human_detected"
-        if total_frames > 0 and (detected_frames / total_frames) >= 0.5
-        else "no_human"
-    )
+
+    # BUG-08 fix: return a distinct result when no frames were collected so the
+    # UI can show 'Scan Failed — No sensor data received' instead of a false negative.
+    if total_frames == 0:
+        final = "scan_failed"
+    elif (detected_frames / total_frames) >= 0.5:
+        final = "human_detected"
+    else:
+        final = "no_human"
 
     result = {
         "ok":              True,

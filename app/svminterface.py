@@ -20,11 +20,17 @@ def call_predict(payload):
         if not payload:
             return {"error": "Empty payload"}
 
-        # OPTION 1: RAW DISTANCE SERIES (if ever used from ld2410_runner.py)
+        # OPTION 1: RAW DISTANCE SERIES
+        # BUG-10 fix: the SVM path is disabled. Log a warning instead of silently
+        # routing into ml_predict() which always returns {"error": "SVM disabled"}.
         if "distance_series" in payload:
-            result = ml_predict(payload)
-            if "error" in result:
-                return result
+            logger.warning(
+                "BUG-10: distance_series payload received but SVM is disabled. "
+                "Route this payload to the TCNInferenceEngine via /api/predict "
+                "with a distance_series key instead."
+            )
+            return {"error": "SVM disabled — use /api/predict with distance_series for TCN inference", "ok": False}
+
 
         # OPTION 2: DEEP-LEARNING OUTPUT PROVIDED DIRECTLY
         elif any(k in payload for k in ("breathing", "freq", "power")):
