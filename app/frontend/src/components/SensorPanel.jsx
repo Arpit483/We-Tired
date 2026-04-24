@@ -1,23 +1,21 @@
 import React from 'react';
 
-// Mini bar chart for WAVEFORM_DELTA
-const WaveformDelta = ({ color }) => {
-  const heights = [30, 50, 70, 45, 80, 55, 65, 40, 75, 60, 85, 50];
+// Real-time signal power indicator driven by actual sensor data
+const WaveformDelta = ({ color, power }) => {
+  // Normalise: typical peak_power from FFT is 0-500+ units; cap at 300 for display
+  const normalised = Math.min(1.0, (power || 0) / 300);
+  const pct = (normalised * 100).toFixed(1);
   return (
     <div className="mt-3">
-      <div className="font-mono text-[9px] text-zinc-600 tracking-widest mb-2 uppercase">WAVEFORM_DELTA</div>
-      <div className="flex items-end gap-[3px] h-10">
-        {heights.map((h, i) => (
-          <div
-            key={i}
-            className="flex-1 rounded-sm opacity-80"
-            style={{
-              height: `${h}%`,
-              backgroundColor: color,
-              opacity: 0.6 + (i % 3) * 0.15,
-            }}
-          />
-        ))}
+      <div className="flex items-center justify-between mb-1">
+        <div className="font-mono text-[9px] text-zinc-600 tracking-widest uppercase">SIGNAL_POWER</div>
+        <div className="font-mono text-[9px] tracking-widest" style={{ color }}>{pct}%</div>
+      </div>
+      <div className="h-2 w-full bg-[#111] overflow-hidden rounded-sm">
+        <div
+          className="h-full rounded-sm transition-all duration-200"
+          style={{ width: `${pct}%`, backgroundColor: color, boxShadow: `0 0 6px ${color}60` }}
+        />
       </div>
     </div>
   );
@@ -35,6 +33,7 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
   const detected = data.detected || false;
   const votingWindow = data.voting_window || 32;
   const freq = data.freq || 0;
+  const power = data.power || 0;
 
   const orderClass = isLeft ? 'order-2 md:order-1' : 'order-3 md:order-3';
 
@@ -92,7 +91,7 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
         <div className={!isLeft ? 'text-right' : ''}>
           <div className="text-zinc-600 font-mono text-[9px] uppercase tracking-widest mb-1">Target_Distance</div>
           <div className={`${colorClass} font-mono text-4xl font-black leading-none`}>
-            {distance.toFixed(1)}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
+            {distance.toFixed(2)}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
           </div>
         </div>
 
@@ -110,8 +109,8 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
           </div>
         </div>
 
-        {/* Waveform */}
-        <WaveformDelta color={color} />
+        {/* Live signal power bar */}
+        <WaveformDelta color={color} power={power} />
 
         {/* Breathing status */}
         <div className="mt-auto">

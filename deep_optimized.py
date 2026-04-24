@@ -42,9 +42,9 @@ class Config:
     SAMPLE_WINDOW = 64
     BREATH_FREQ_MIN = 0.15
     BREATH_FREQ_MAX = 0.67
-    CONFIDENCE_THRESHOLD = 0.85
+    CONFIDENCE_THRESHOLD = 0.65   # audit fix: match model's own detect threshold
     VOTING_WINDOW = 32
-    VOTING_THRESHOLD = 18
+    VOTING_THRESHOLD = 16          # audit fix: 50% of window
     SAMPLE_PERIOD = 0.1
     VERBOSE = True
     SHOW_FEATURES = True
@@ -340,7 +340,11 @@ def run_sensor(sensor_id, port, model, device):
                         
                         if model is not None and HAS_TORCH:
                             arr_t = torch.tensor(arr, dtype=torch.float32).to(device)
-                            x_input = arr_t.unsqueeze(0).unsqueeze(0).unsqueeze(0).expand(1, 1, 64, 64)
+                            # Fix: reshape 64-sample 1D window into 8x8 spatial grid.
+                            # The old expand(1,1,64,64) created a 64x64 image by duplicating
+                            # rows — feeding meaningless spatial structure to the CNN and
+                            # producing garbage softmax values near 1.0 on every frame.
+                            x_input = arr_t.view(1, 1, 8, 8)
                             with torch.no_grad():
                                 out = model(x_input)
                                 prob = torch.softmax(out, dim=1)[0, 1].item()
@@ -359,8 +363,8 @@ def run_sensor(sensor_id, port, model, device):
                               f"Freq:{feats['peak_freq']:.3f}  Pow:{feats['peak_power']:.1f}  "
                               f"Conf:{conf:.3f}  Votes:{votes}/{Config.VOTING_WINDOW}  {status}")
                         
-                        # Send to web (does not affect detection logic)
-                        send_to_web(sensor_id, distance, detected, conf, votes,
+                        # Send to web — convert cm to metres for UI display
+                        send_to_web(sensor_id, distance / 100.0, detected, conf, votes,
                                    feats['peak_freq'], feats['peak_power'])
                         
                         frame += 1
