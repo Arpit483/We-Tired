@@ -92,7 +92,7 @@ const SensorPanel = ({ side, name, colorPrefix, data }) => {
         <div className={!isLeft ? 'text-right' : ''}>
           <div className="text-zinc-600 font-mono text-[9px] uppercase tracking-widest mb-1">Target_Distance</div>
           <div className={`${colorClass} font-mono text-4xl font-black leading-none`}>
-            {distance.toFixed(1)}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
+            {distance.toFixed(1)}<span className="text-zinc-500 text-base ml-1 font-normal">cm</span>
           </div>
         </div>
 
