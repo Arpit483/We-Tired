@@ -13,48 +13,33 @@ import threading
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
-# HIGH-04: protect LATEST with a lock so concurrent green-threads see a consistent snapshot
+# ---------------------------------------------------------------------------
+# Thread-safe LATEST snapshot (HIGH-04)
+# ---------------------------------------------------------------------------
 _latest_lock = threading.Lock()
-=======
-# ---------------------------------------------------------------------------
-# Scan state — fully self-contained, no deep_optimized import needed (BUG-05)
-# ---------------------------------------------------------------------------
-_scan_active  = False
-_scan_results = []        # list of {"detected": bool, "confidence": float}
-_scan_lock    = threading.Lock()
-
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
 LATEST = {}
 
 terminal_subscribers = []
-sensor_subscribers = []
+sensor_subscribers   = []
 _sub_lock = threading.Lock()
 
 # ---------------------------------------------------------------------------
-# CRIT-02 / HIGH-03: TCN engine singleton
-#   - Config.VOTING_WINDOW is cached on the engine object after first load so
-#     api_predict never needs its own 'from model_tcn_attention_v2 import Config'
-#   - A missing model file raises a clear RuntimeError at load time, not silently
-# ---------------------------------------------------------------------------
-_tcn_engine = None
-_tcn_engine_lock = threading.Lock()
-_tcn_voting_window = 32   # default; overwritten when engine loads
-_tcn_load_failed = False  # set True after a definitive load failure to avoid retrying
-
-# ---------------------------------------------------------------------------
-# Scan state — self-contained, no dependency on deep_optimized at runtime
+# Scan state — self-contained, no deep_optimized import at runtime (BUG-05)
 # ---------------------------------------------------------------------------
 _scan_active  = False
-_scan_results = []        # list of {"detected": bool, "confidence": float}
+_scan_results = []   # list of {"detected": bool, "confidence": float}
 _scan_lock    = threading.Lock()
 
+# ---------------------------------------------------------------------------
+# TCN engine singleton (CRIT-02 / HIGH-03)
+# ---------------------------------------------------------------------------
+_tcn_engine        = None
+_tcn_engine_lock   = threading.Lock()
+_tcn_voting_window = 32   # overwritten when engine loads
+_tcn_load_failed   = False
+
 def _get_tcn_engine():
-    """
-    Load TCNInferenceEngine once and cache it.
-    Raises RuntimeError if the model file is missing or corrupt.
-    Subsequent calls after a failure return None immediately (no retry storm).
-    """
+    """Load TCNInferenceEngine once and cache it."""
     global _tcn_engine, _tcn_voting_window, _tcn_load_failed
     with _tcn_engine_lock:
         if _tcn_load_failed:
@@ -68,28 +53,23 @@ def _get_tcn_engine():
                 os.path.join(os.path.dirname(__file__), '..', 'model'))
             model_pt  = os.path.join(model_dir, 'tcn_attention_vitalradar_v2.pt')
 
-            # CRIT-02: fail fast with a descriptive message instead of HTTP 500
             if not os.path.isfile(model_pt):
                 _tcn_load_failed = True
                 raise RuntimeError(
                     f"[CRIT-02] Model weights not found at: {model_pt}\n"
                     "Run 'python model/download_weights.py' or copy the file manually."
                 )
-
             try:
                 if model_dir not in sys.path:
                     sys.path.insert(0, model_dir)
-
                 from model_tcn_attention_v2 import TCNInferenceEngine, Config as TCNConfig
                 _tcn_engine = TCNInferenceEngine(model_pt)
-                # HIGH-03: store VOTING_WINDOW on the engine so callers never re-import Config
                 _tcn_engine._voting_window = TCNConfig.VOTING_WINDOW
                 _tcn_voting_window = TCNConfig.VOTING_WINDOW
                 logger.info("[CRIT-02] TCNInferenceEngine loaded from %s", model_pt)
             except Exception as load_err:
                 _tcn_load_failed = True
                 raise RuntimeError(f"TCN engine load failed: {load_err}") from load_err
-
     return _tcn_engine
 
 
@@ -135,7 +115,7 @@ def serve(path):
 def api_predict():
     """
     Accept JSON payload from deep_optimized.py and broadcast to UI.
-    Two accepted shapes:
+    Accepted shapes:
       1. {"distance_series": [...]}  →  run inline TCN inference
       2. Any payload with "breathing" / "left_detected" etc.  →  store & broadcast
     """
@@ -147,73 +127,62 @@ def api_predict():
         if "timestamp" not in payload:
             payload["timestamp"] = int(time.time() * 1000)
 
-        # ── Inline TCN path ──────────────────────────────────────────────────
+        # Inline TCN path
         if "distance_series" in payload:
             import numpy as np
             ds = payload["distance_series"]
-
-            # LOW-01: validate input before touching numpy
             if not isinstance(ds, list) or len(ds) < 64:
                 return jsonify({
                     "error": f"distance_series must be a list of >=64 numbers, got {len(ds) if isinstance(ds, list) else type(ds).__name__}"
                 }), 400
             if not all(isinstance(v, (int, float)) for v in ds):
                 return jsonify({"error": "distance_series must contain only numbers"}), 400
-
             try:
                 engine = _get_tcn_engine()
-                vw = getattr(engine, '_voting_window', _tcn_voting_window)
-                arr = np.array(ds[-64:], dtype=np.float32)
+                vw     = getattr(engine, '_voting_window', _tcn_voting_window)
+                arr    = np.array(ds[-64:], dtype=np.float32)
                 detected, conf = engine.predict(arr)
-                # distance kept in cm to match deep_optimized.py convention;
-                # SensorPanel divides by 100 to display in metres.
                 raw_cm = float(arr[-1])
                 payload = {
                     "breathing": bool(detected),
-                    "status": "detected" if detected else "not_detected",
-                    "direction": "center" if detected else "none",
-                    "left_detected": bool(detected), "right_detected": False,
-                    "left_distance": raw_cm, "right_distance": 0.0,
-                    "left_confidence": float(conf), "right_confidence": 0.0,
-                    "left_votes": int(conf * vw), "right_votes": 0,
-                    "left_freq": 0.0, "right_freq": 0.0,
-                    "left_power": 0.0, "right_power": 0.0,
+                    "status":    "detected" if detected else "not_detected",
+                    "direction": "center"   if detected else "none",
+                    "left_detected":    bool(detected), "right_detected": False,
+                    "left_distance":    raw_cm,          "right_distance": 0.0,
+                    "left_confidence":  float(conf),     "right_confidence": 0.0,
+                    "left_votes":       int(conf * vw),  "right_votes": 0,
+                    "left_freq":        0.0,             "right_freq":  0.0,
+                    "left_power":       0.0,             "right_power": 0.0,
                     "distance": raw_cm, "freq": 0.0, "power": 0.0,
-                    "entropy": float(conf), "fft_conf": float(conf), "dl_conf": float(conf),
+                    "entropy":  float(conf), "fft_conf": float(conf), "dl_conf": float(conf),
                     "votes": int(conf * vw), "voting_window": vw,
                     "timestamp": int(time.time() * 1000),
                 }
             except RuntimeError as model_err:
-                # CRIT-02: model file missing — return 503 with clear message
                 logger.critical("Model unavailable: %s", model_err)
                 return jsonify({"error": str(model_err)}), 503
             except Exception as infer_err:
                 logger.error("Inline inference failed: %s", infer_err)
                 return jsonify({"error": str(infer_err)}), 500
 
-        # ── Store & broadcast ─────────────────────────────────────────────────
-        with _latest_lock:            # HIGH-04: thread-safe LATEST update
+        # Store & broadcast
+        with _latest_lock:
             LATEST = payload
         notify_sensors(payload)
         socketio.emit("sensor_update", payload)
 
-<<<<<<< HEAD
-        # ── Scan mode: accumulate per-frame result ────────────────────────────
-=======
-        # ── Scan mode: accumulate per-frame result (BUG-04 fix) ─────────────
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
+        # Scan mode: accumulate per-frame result (BUG-04 fix)
         global _scan_active, _scan_results
         with _scan_lock:
             if _scan_active:
                 _scan_results.append({
-<<<<<<< HEAD
-                    "detected":    bool(payload.get("breathing", False)),
-                    "confidence":  float(payload.get("dl_conf",
-                                          payload.get("fft_conf",
-                                          payload.get("entropy", 0.0)))),
+                    "detected":   bool(payload.get("breathing", False)),
+                    "confidence": float(payload.get("dl_conf",
+                                        payload.get("fft_conf",
+                                        payload.get("entropy", 0.0)))),
                 })
 
-        # HIGH-02: use context-manager so connection is always released
+        # Persist to DB (HIGH-02: context manager guarantees connection release)
         db_path = os.path.join(os.path.dirname(__file__), "predictions.db")
         try:
             with sqlite3.connect(db_path) as conn:
@@ -221,35 +190,14 @@ def api_predict():
                 cur.execute(
                     "CREATE TABLE IF NOT EXISTS predictions "
                     "(id INTEGER PRIMARY KEY AUTOINCREMENT, raw_json TEXT, timestamp INTEGER)"
-=======
-                    "detected":   bool(payload.get("breathing", False)),
-                    "confidence": float(payload.get("dl_conf",
-                                        payload.get("fft_conf",
-                                        payload.get("entropy", 0.0)))),
-                })
-
-        # Save to DB for history
-        try:
-            db_path = os.path.join(os.path.dirname(__file__), "predictions.db")
-            with sqlite3.connect(db_path) as conn:
-                cur = conn.cursor()
-                cur.execute(
-                    "CREATE TABLE IF NOT EXISTS predictions (id INTEGER PRIMARY KEY AUTOINCREMENT, raw_json TEXT, timestamp INTEGER)"
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
                 )
                 cur.execute(
                     "INSERT INTO predictions (raw_json, timestamp) VALUES (?, ?)",
                     (json.dumps(payload), payload["timestamp"])
                 )
-<<<<<<< HEAD
         except sqlite3.Error as db_err:
             logger.error("DB Error: %s", db_err)
 
-=======
-        except Exception as db_err:
-            logger.error(f"DB Error: {db_err}")
-            
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
         return jsonify({"ok": True}), 200
 
     except Exception as e:
@@ -262,109 +210,30 @@ def api_predict():
 # ---------------------------------------------------------------------------
 @app.route("/api/latest")
 def api_latest():
-<<<<<<< HEAD
-    with _latest_lock:              # HIGH-04: consistent read
-        snapshot = dict(LATEST)
-    
-    if not snapshot:
-=======
     """Return latest prediction dictionary."""
-    if not LATEST:
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
+    with _latest_lock:
+        snapshot = dict(LATEST)
+
+    if not snapshot:
         return jsonify({
             "breathing": False, "status": "not_detected", "direction": "none",
-            "left_detected": False, "left_distance": 0, "right_detected": False,
-            "right_distance": 0, "left_confidence": 0, "right_confidence": 0,
-<<<<<<< HEAD
+            "left_detected": False,  "left_distance":    0, "right_detected": False,
+            "right_distance": 0,     "left_confidence":  0, "right_confidence": 0,
             "left_votes": 0, "right_votes": 0, "votes": 0, "voting_window": 32,
             "distance": 0, "freq": 0, "power": 0, "entropy": 0,
             "fft_conf": 0, "dl_conf": 0, "timestamp": int(time.time() * 1000)
         }), 200
-        
+
     return jsonify(snapshot), 200
 
 
 # ---------------------------------------------------------------------------
 # /api/terminal
 # ---------------------------------------------------------------------------
-=======
-            "distance": 0, "freq": 0, "power": 0, "entropy": 0,
-            "fft_conf": 0, "dl_conf": 0, "timestamp": int(time.time() * 1000)
-        }), 200
-    return jsonify(LATEST), 200
-
-
-# ---------------------------------------------------------------------------
-# /api/scan/*  — full scan pipeline with all audit-report fixes applied
-# ---------------------------------------------------------------------------
-
-@app.route("/api/scan/start", methods=["POST"])
-def api_scan_start():
-    """Arm a new scan session. Returns 409 if one is already running."""
-    global _scan_active, _scan_results
-    with _scan_lock:
-        if _scan_active:
-            return jsonify({"error": "scan already running"}), 409
-        _scan_active = True
-        _scan_results = []
-    # BUG-05: do NOT import deep_optimized here — that would create a fresh
-    # module copy with different Event objects, not the live subprocess.
-    socketio.emit("scan_started", {"duration": 10})
-    return jsonify({"ok": True, "duration": 10}), 200
-
-
-@app.route("/api/scan/stop", methods=["POST"])
-def api_scan_stop():
-    """End the current scan and return an aggregated result."""
-    global _scan_active, _scan_results
-    with _scan_lock:
-        _scan_active = False
-        frames = list(_scan_results)
-        _scan_results = []
-
-    total_frames    = len(frames)
-    detected_frames = sum(1 for f in frames if f["detected"])
-    confidence_avg  = (
-        sum(f["confidence"] for f in frames) / total_frames
-        if total_frames > 0 else 0.0
-    )
-
-    # BUG-08 fix: return a distinct state when no sensor data arrived,
-    # so the UI can show 'Scan Failed' instead of a false 'No Human' result.
-    if total_frames == 0:
-        final = "scan_failed"
-    elif (detected_frames / total_frames) >= 0.5:
-        final = "human_detected"
-    else:
-        final = "no_human"
-
-    result = {
-        "ok":              True,
-        "result":          final,
-        "detected_frames": detected_frames,
-        "total_frames":    total_frames,
-        "confidence_avg":  round(confidence_avg, 4),
-    }
-    socketio.emit("scan_complete", result)
-    return jsonify(result), 200
-
-
-@app.route("/api/scan/result", methods=["GET"])
-def api_scan_result():
-    """Live frame counter — polled by frontend before calling stop (BUG-01 fix)."""
-    with _scan_lock:
-        active   = _scan_active
-        n_frames = len(_scan_results)
-    if active:
-        return jsonify({"status": "running", "frames_so_far": n_frames}), 200
-    return jsonify({"status": "no_scan"}), 200
-
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
 @app.route("/api/terminal", methods=["POST"])
 def api_terminal():
     try:
         payload = request.get_json(force=True, silent=False)
-        # Guard: payload may be None or a non-dict JSON value
         if not isinstance(payload, dict):
             return jsonify({"error": "Payload must be a JSON object"}), 400
         line = payload.get("line", "")
@@ -398,15 +267,14 @@ def api_system():
             except OSError:
                 pass
 
-        # MED-02: return null (None -> JSON null) instead of -1 sentinel
         return jsonify({
-            "cpu_percent": psutil.cpu_percent(),
-            "ram_percent": psutil.virtual_memory().percent,
-            "cpu_temp": cpu_temp,           # None -> null in JSON
-            "cpu_temp_available": cpu_temp is not None,
-            "s1_connected": os.path.exists("/dev/ttyUSB0"),
-            "s2_connected": os.path.exists("/dev/ttyUSB1"),
-            "uptime": time.time() - psutil.boot_time(),
+            "cpu_percent":         psutil.cpu_percent(),
+            "ram_percent":         psutil.virtual_memory().percent,
+            "cpu_temp":            cpu_temp,
+            "cpu_temp_available":  cpu_temp is not None,
+            "s1_connected":        os.path.exists("/dev/ttyUSB0"),
+            "s2_connected":        os.path.exists("/dev/ttyUSB1"),
+            "uptime":              time.time() - psutil.boot_time(),
         }), 200
     except Exception as e:
         logger.error("Error in api_system: %s", e)
@@ -414,21 +282,19 @@ def api_system():
 
 
 # ---------------------------------------------------------------------------
-# /api/model  (static metadata -- no model file needed)
+# /api/model  (metadata — no model file needed at runtime)
 # ---------------------------------------------------------------------------
 @app.route("/api/model")
 def api_scan_model():
-    # ISSUE-A fix: reflect actual Config values used in deep_optimized.py
-    # (BUG-02: 0.65 not 0.88) (BUG-03: 16 not 22)
     return jsonify({
-        "name": "VitalRadar TCN-Attention v2",
-        "window_size": 64,
-        "freq_min": 0.15,
-        "freq_max": 0.67,
-        "confidence_threshold": 0.65,   # matches deep_optimized Config.CONFIDENCE_THRESHOLD
-        "detect_threshold": 0.65,       # matches model_tcn_attention_v2 predict_confidence()
-        "voting_window": 32,
-        "voting_threshold": 16,         # matches deep_optimized Config.VOTING_THRESHOLD
+        "name":                 "VitalRadar TCN-Attention v2",
+        "window_size":          64,
+        "freq_min":             0.15,
+        "freq_max":             0.67,
+        "confidence_threshold": 0.65,
+        "detect_threshold":     0.65,
+        "voting_window":        32,
+        "voting_threshold":     16,
     }), 200
 
 
@@ -442,11 +308,7 @@ def api_history():
         if not os.path.exists(db_path):
             return jsonify([]), 200
 
-<<<<<<< HEAD
-        # HIGH-02: context-manager guarantees connection is closed
-=======
-        # Use context manager — auto-commits and closes even on exception (fixes HTTP 500)
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
+        # HIGH-02: context manager guarantees connection is always closed
         history_data = []
         with sqlite3.connect(db_path) as conn:
             cur = conn.cursor()
@@ -469,25 +331,17 @@ def api_history():
 
 
 # ---------------------------------------------------------------------------
-# /api/scan/*
+# /api/scan/*  (BUG-01, BUG-04, BUG-05, BUG-08 fixes)
 # ---------------------------------------------------------------------------
-
 @app.route("/api/scan/start", methods=["POST"])
 def api_scan_start():
-    """Arm a new scan session.  Returns 409 if one is already running."""
+    """Arm a new scan session. Returns 409 if one is already running."""
     global _scan_active, _scan_results
     with _scan_lock:
         if _scan_active:
             return jsonify({"error": "scan already running"}), 409
-        _scan_active = True
+        _scan_active  = True
         _scan_results = []
-
-    # BUG-05 fix: removed 'import deep_optimized; deep_optimized.start_scan()'
-    # That call imported a fresh module copy, not the running subprocess —
-    # the Event objects in the subprocess are different in-memory objects.
-    # The Flask-side _scan_results list is the sole collection mechanism;
-    # deep_optimized posts to /api/predict during the window, which appends here.
-
     socketio.emit("scan_started", {"duration": 10})
     return jsonify({"ok": True, "duration": 10}), 200
 
@@ -497,12 +351,9 @@ def api_scan_stop():
     """End the current scan and return an aggregated result."""
     global _scan_active, _scan_results
     with _scan_lock:
-        _scan_active = False
-        frames = list(_scan_results)   # snapshot before clearing
+        _scan_active  = False
+        frames        = list(_scan_results)
         _scan_results = []
-
-    # BUG-05 fix: removed the 'import deep_optimized; deep_optimized.stop_scan()' call
-    # for the same reason — it targets a fresh module copy, not the live subprocess.
 
     total_frames    = len(frames)
     detected_frames = sum(1 for f in frames if f["detected"])
@@ -511,8 +362,7 @@ def api_scan_stop():
         if total_frames > 0 else 0.0
     )
 
-    # BUG-08 fix: return a distinct result when no frames were collected so the
-    # UI can show 'Scan Failed — No sensor data received' instead of a false negative.
+    # BUG-08: distinct result when 0 frames → "scan_failed" not "no_human"
     if total_frames == 0:
         final = "scan_failed"
     elif (detected_frames / total_frames) >= 0.5:
@@ -533,8 +383,9 @@ def api_scan_stop():
 
 @app.route("/api/scan/result", methods=["GET"])
 def api_scan_result():
+    """Live frame counter — polled by frontend before calling stop (BUG-01 fix)."""
     with _scan_lock:
-        active = _scan_active
+        active   = _scan_active
         n_frames = len(_scan_results)
     if active:
         return jsonify({"status": "running", "frames_so_far": n_frames}), 200
@@ -544,7 +395,7 @@ def api_scan_result():
 # ---------------------------------------------------------------------------
 # /api/restart  &  /api/stop
 # ---------------------------------------------------------------------------
-_deep_process = None
+_deep_process      = None
 _deep_process_lock = threading.Lock()
 
 @app.route("/api/restart", methods=["POST"])
