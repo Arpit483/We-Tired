@@ -39,6 +39,29 @@ const Dashboard = () => {
             detected: latestData.left_detected,
             voting_window: latestData.voting_window,
           }}
+        />
+
+        {/* Center radar */}
+        <DirectionRing
+          direction={latestData.direction}
+          distance={latestData.distance}
+          freq={latestData.freq}
+          votes={latestData.votes}
+        />
+
+        {/* Right sensor */}
+        <SensorPanel
+          side="right"
+          name="S2"
+          colorPrefix="neon-coral"
+          data={{
+            distance: latestData.right_distance,
+            confidence: latestData.right_confidence,
+            freq: latestData.right_freq,
+            power: latestData.right_power,
+            votes: latestData.right_votes,
+            detected: latestData.right_detected,
+            voting_window: latestData.voting_window,
           }}
         />
       </div>
