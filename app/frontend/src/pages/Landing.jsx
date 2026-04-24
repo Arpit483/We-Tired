@@ -5,18 +5,17 @@ const Landing = () => {
   const navigate = useNavigate();
   const [scanState, setScanState] = useState('idle'); // idle | countdown | scanning | result
   const [countdown, setCountdown] = useState(10);
-  const [result, setResult] = useState(null);
+  const [scanData, setScanData] = useState(null);   // full API response from /api/scan/stop
   const timerRef = useRef(null);
-  const modelProcessRef = useRef(null);
 
   const startScan = async () => {
     setScanState('countdown');
     setCountdown(10);
-    setResult(null);
+    setScanData(null);
 
     // Start the deep learning background scan via Flask API
     try {
-      await fetch('/api/scan/start', { 
+      await fetch('http://localhost:5050/api/scan/start', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ duration: 10.0 })
@@ -37,11 +36,11 @@ const Landing = () => {
         // After 1.5 seconds of "scanning" animation, fetch true aggregated result
         setTimeout(async () => {
           try {
-            const res = await fetch('/api/scan/stop', { method: 'POST' });
+            const res = await fetch('http://localhost:5050/api/scan/stop', { method: 'POST' });
             const data = await res.json();
-            setResult(data?.human_present === true);
+            setScanData(data);
           } catch {
-            setResult(false);
+            setScanData({ result: 'no_human', detected_frames: 0, total_frames: 0, confidence_avg: 0 });
           }
           setScanState('result');
         }, 1500);
@@ -53,7 +52,7 @@ const Landing = () => {
     clearInterval(timerRef.current);
     setScanState('idle');
     setCountdown(10);
-    setResult(null);
+    setScanData(null);
   };
 
   useEffect(() => () => clearInterval(timerRef.current), []);
@@ -190,39 +189,52 @@ const Landing = () => {
           )}
 
           {/* RESULT STATE */}
-          {scanState === 'result' && (
-            <div className="flex flex-col items-center gap-6">
-              <div className={`text-[11px] font-mono tracking-widest uppercase ${result ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>
-                SCAN COMPLETE
-              </div>
-
-              <div className={`w-32 h-32 rounded-full flex items-center justify-center border-4 ${result ? 'border-[#AAFF00] bg-[#AAFF00]/10' : 'border-[#FF5C5C] bg-[#FF5C5C]/10'}`}>
-                <span className={`material-symbols-outlined text-[56px] ${result ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>
-                  {result ? 'person' : 'person_off'}
-                </span>
-              </div>
-
-              <div className="text-center">
-                <div className={`font-mono text-3xl font-black tracking-tight mb-1 ${result ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>
-                  {result ? 'HUMAN DETECTED' : 'NO HUMAN DETECTED'}
+          {scanState === 'result' && (() => {
+            const detected = scanData?.result === 'human_detected';
+            return (
+              <div className="flex flex-col items-center gap-6">
+                <div className={`text-[11px] font-mono tracking-widest uppercase ${detected ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>
+                  SCAN COMPLETE
                 </div>
-                <div className="text-zinc-500 font-mono text-[11px] tracking-wider">
-                  {result ? 'BREATHING PATTERN CONFIRMED' : 'NO BREATHING SIGNAL FOUND'}
+
+                <div className={`w-32 h-32 rounded-full flex items-center justify-center border-4 ${detected ? 'border-[#AAFF00] bg-[#AAFF00]/10' : 'border-[#FF5C5C] bg-[#FF5C5C]/10'}`}>
+                  <span className={`material-symbols-outlined text-[56px] ${detected ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>
+                    {detected ? 'person' : 'person_off'}
+                  </span>
+                </div>
+
+                <div className="text-center">
+                  <div className={`font-mono text-3xl font-black tracking-tight mb-1 ${detected ? 'text-[#AAFF00]' : 'text-[#FF5C5C]'}`}>
+                    {detected ? '✓ HUMAN DETECTED' : '✗ NO HUMAN DETECTED'}
+                  </div>
+                  <div className="text-zinc-500 font-mono text-[11px] tracking-wider mb-1">
+                    {detected ? 'BREATHING PATTERN CONFIRMED' : 'NO BREATHING SIGNAL FOUND'}
+                  </div>
+                  {detected && scanData?.confidence_avg != null && (
+                    <div className="text-[#00CFFF] font-mono text-[12px] tracking-wider">
+                      CONFIDENCE: {(scanData.confidence_avg * 100).toFixed(1)}%
+                    </div>
+                  )}
+                  {scanData?.total_frames > 0 && (
+                    <div className="text-zinc-600 font-mono text-[10px] mt-1">
+                      {scanData.detected_frames}/{scanData.total_frames} FRAMES POSITIVE
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 w-full">
+                  <button onClick={resetScan}
+                    className="flex-1 border border-[#AAFF00] text-[#AAFF00] font-mono font-bold text-[12px] uppercase py-3 hover:bg-[#AAFF00] hover:text-[#0a0a0a] transition-colors tracking-widest">
+                    SCAN AGAIN
+                  </button>
+                  <button onClick={() => navigate('/')}
+                    className="flex-1 border border-zinc-700 text-zinc-400 font-mono text-[12px] uppercase py-3 hover:border-zinc-400 transition-colors tracking-widest">
+                    DASHBOARD
+                  </button>
                 </div>
               </div>
-
-              <div className="flex gap-3 w-full">
-                <button onClick={resetScan}
-                  className="flex-1 border border-[#AAFF00] text-[#AAFF00] font-mono font-bold text-[12px] uppercase py-3 hover:bg-[#AAFF00] hover:text-[#0a0a0a] transition-colors tracking-widest">
-                  SCAN AGAIN
-                </button>
-                <button onClick={() => navigate('/')}
-                  className="flex-1 border border-zinc-700 text-zinc-400 font-mono text-[12px] uppercase py-3 hover:border-zinc-400 transition-colors tracking-widest">
-                  DASHBOARD
-                </button>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
         </div>
       </section>

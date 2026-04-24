@@ -65,9 +65,9 @@ class Config:
     SAMPLE_WINDOW = 64
     BREATH_FREQ_MIN = 0.15
     BREATH_FREQ_MAX = 0.67
-    CONFIDENCE_THRESHOLD = 0.85
+    CONFIDENCE_THRESHOLD = 0.88   # raised from 0.85 — only very-confident frames vote YES
     VOTING_WINDOW = 32
-    VOTING_THRESHOLD = 18
+    VOTING_THRESHOLD = 22          # raised from 18 — stricter consensus (69% of window)
     SAMPLE_PERIOD = 0.1
     VERBOSE = True
     SHOW_FEATURES = True
@@ -151,6 +151,9 @@ def extract_breathing_features(dist_array):
 
 
 def score_breathing_features(f):
+    # Gate: no real signal means no score — avoids false positives on dead sensors / walls
+    if f["peak_power"] < 50:
+        return 0.0
     s = 0.0
     if Config.BREATH_FREQ_MIN <= f["peak_freq"] <= Config.BREATH_FREQ_MAX:
         s += 0.3
@@ -295,9 +298,14 @@ def send_to_web(sensor_id, distance, detected, confidence, votes, freq, power):
             elif not s1_detected and not s2_detected:
                 status, direction = "not_detected", "none"
             elif s1_detected:
-                status, direction = "high_chance", "move_right"
+                # Only emit high_chance when solo sensor has strong vote consensus
+                s1_votes = s1.get("votes", 0)
+                status = "high_chance" if s1_votes >= 20 else "not_detected"
+                direction = "move_right" if status == "high_chance" else "none"
             else:
-                status, direction = "high_chance", "move_left"
+                s2_votes = s2.get("votes", 0)
+                status = "high_chance" if s2_votes >= 20 else "not_detected"
+                direction = "move_left" if status == "high_chance" else "none"
 
             payload = {
                 "breathing": status == "detected",
@@ -442,15 +450,23 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                     # MED-03: compute features once, reuse for both logging and fallback
                     feats = extract_breathing_features(arr)
 
-                    # ── TCN-Attention v2 inference (MED-07: no tcn_lock needed) ──
-                    if tcn_engine is not None:
-                        try:
-                            _detected_tcn, conf = tcn_engine.predict(arr)
-                        except Exception as tcn_err:
-                            logger.error("%s TCN predict error: %s", prefix, tcn_err)
-                            conf = score_breathing_features(feats)  # fallback
+                    # ── Flat-signal sanity check (dead sensor or bare wall) ────
+                    # If the last 5 distances are all within 0.5 cm of each other,
+                    # the sensor is either dead or pointed at a static reflector.
+                    # Force confidence to 0 to avoid false positives.
+                    last5 = list(dist_buf)[-5:] if len(dist_buf) >= 5 else list(dist_buf)
+                    if len(last5) >= 5 and (max(last5) - min(last5)) < 0.5:
+                        conf = 0.0
                     else:
-                        conf = score_breathing_features(feats)
+                        # ── TCN-Attention v2 inference (MED-07: no tcn_lock needed) ──
+                        if tcn_engine is not None:
+                            try:
+                                _detected_tcn, conf = tcn_engine.predict(arr)
+                            except Exception as tcn_err:
+                                logger.error("%s TCN predict error: %s", prefix, tcn_err)
+                                conf = score_breathing_features(feats)  # fallback
+                        else:
+                            conf = score_breathing_features(feats)
 
                     if Config.VERBOSE:
                         freq_str = f"{feats['peak_freq']:.3f}"

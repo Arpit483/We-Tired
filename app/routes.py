@@ -32,6 +32,13 @@ _tcn_engine_lock = threading.Lock()
 _tcn_voting_window = 32   # default; overwritten when engine loads
 _tcn_load_failed = False  # set True after a definitive load failure to avoid retrying
 
+# ---------------------------------------------------------------------------
+# Scan state — self-contained, no dependency on deep_optimized at runtime
+# ---------------------------------------------------------------------------
+_scan_active  = False
+_scan_results = []        # list of {"detected": bool, "confidence": float}
+_scan_lock    = threading.Lock()
+
 def _get_tcn_engine():
     """
     Load TCNInferenceEngine once and cache it.
@@ -180,6 +187,17 @@ def api_predict():
         notify_sensors(payload)
         socketio.emit("sensor_update", payload)
 
+        # ── Scan mode: accumulate per-frame result ────────────────────────────
+        global _scan_active, _scan_results
+        with _scan_lock:
+            if _scan_active:
+                _scan_results.append({
+                    "detected":    bool(payload.get("breathing", False)),
+                    "confidence":  float(payload.get("dl_conf",
+                                          payload.get("fft_conf",
+                                          payload.get("entropy", 0.0)))),
+                })
+
         # HIGH-02: use context-manager so connection is always released
         db_path = os.path.join(os.path.dirname(__file__), "predictions.db")
         try:
@@ -290,8 +308,10 @@ def api_model():
         "window_size": 64,
         "freq_min": 0.15,
         "freq_max": 0.67,
-        "confidence_threshold": 0.85,
+        "confidence_threshold": 0.88,
+        "detect_threshold": 0.65,
         "voting_window": 32,
+        "voting_threshold": 22,
     }), 200
 
 
@@ -330,50 +350,84 @@ def api_history():
 # ---------------------------------------------------------------------------
 # /api/scan/*
 # ---------------------------------------------------------------------------
-SCAN_RESULT = None
 
 @app.route("/api/scan/start", methods=["POST"])
 def api_scan_start():
+    """Arm a new scan session.  Returns 409 if one is already running."""
+    global _scan_active, _scan_results
+    with _scan_lock:
+        if _scan_active:
+            return jsonify({"error": "scan already running"}), 409
+        _scan_active = True
+        _scan_results = []
+
+    # Also tell deep_optimized (if it is running as a subprocess) to begin its
+    # scan window — best-effort, ignore if not available.
     try:
-        payload = request.get_json(force=True, silent=True) or {}
-        duration = float(payload.get("duration", 10.0))
-        
         import sys
         root_dir = os.path.dirname(os.path.dirname(__file__))
         if root_dir not in sys.path:
             sys.path.insert(0, root_dir)
         import deep_optimized
-        
-        deep_optimized.start_scan(duration)
-        socketio.emit("scan_started", {"duration": duration})
-        return jsonify({"ok": True, "duration": duration}), 200
-    except Exception as e:
-        logger.error("Error in api_scan_start: %s", e)
-        return jsonify({"error": str(e)}), 500
+        deep_optimized.start_scan(10.0)
+    except Exception:
+        pass
+
+    socketio.emit("scan_started", {"duration": 10})
+    return jsonify({"ok": True, "duration": 10}), 200
+
 
 @app.route("/api/scan/stop", methods=["POST"])
 def api_scan_stop():
-    global SCAN_RESULT
+    """End the current scan and return an aggregated result."""
+    global _scan_active, _scan_results
+    with _scan_lock:
+        _scan_active = False
+        frames = list(_scan_results)   # snapshot before clearing
+        _scan_results = []
+
+    # Also stop deep_optimized scan window — best-effort.
     try:
         import sys
         root_dir = os.path.dirname(os.path.dirname(__file__))
         if root_dir not in sys.path:
             sys.path.insert(0, root_dir)
         import deep_optimized
-        
-        result = deep_optimized.stop_scan()
-        SCAN_RESULT = result
-        socketio.emit("scan_complete", result)
-        return jsonify(result), 200
-    except Exception as e:
-        logger.error("Error in api_scan_stop: %s", e)
-        return jsonify({"error": str(e)}), 500
+        deep_optimized.stop_scan()
+    except Exception:
+        pass
+
+    total_frames    = len(frames)
+    detected_frames = sum(1 for f in frames if f["detected"])
+    confidence_avg  = (
+        sum(f["confidence"] for f in frames) / total_frames
+        if total_frames > 0 else 0.0
+    )
+    final = (
+        "human_detected"
+        if total_frames > 0 and (detected_frames / total_frames) >= 0.5
+        else "no_human"
+    )
+
+    result = {
+        "ok":              True,
+        "result":          final,
+        "detected_frames": detected_frames,
+        "total_frames":    total_frames,
+        "confidence_avg":  round(confidence_avg, 4),
+    }
+    socketio.emit("scan_complete", result)
+    return jsonify(result), 200
+
 
 @app.route("/api/scan/result", methods=["GET"])
 def api_scan_result():
-    if SCAN_RESULT is None:
-        return jsonify({"status": "no_scan"}), 200
-    return jsonify(SCAN_RESULT), 200
+    with _scan_lock:
+        active = _scan_active
+        n_frames = len(_scan_results)
+    if active:
+        return jsonify({"status": "running", "frames_so_far": n_frames}), 200
+    return jsonify({"status": "no_scan"}), 200
 
 
 # ---------------------------------------------------------------------------

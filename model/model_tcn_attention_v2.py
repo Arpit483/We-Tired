@@ -389,6 +389,13 @@ class TCNAttentionModelV2(nn.Module):
         )
 
     def forward(self, x_tcn, x_fft):
+        # ── Shape guards — catch mismatches early (fail loud, not silently) ──
+        assert x_tcn.ndim == 3 and x_tcn.shape[1] == 1 and x_tcn.shape[2] == 64, (
+            f"x_tcn must be [B, 1, 64], got {list(x_tcn.shape)}"
+        )
+        assert x_fft.ndim == 3 and x_fft.shape[1] == 1 and x_fft.shape[2] == 33, (
+            f"x_fft must be [B, 1, 33], got {list(x_fft.shape)}"
+        )
         # ── TCN stream ────────────────────────────────────────────
         t = self.embed(x_tcn)               # [B, 32, 64]
         t = self.tcn1(t)                    # [B, 64, 64]
@@ -413,10 +420,18 @@ class TCNAttentionModelV2(nn.Module):
     @torch.no_grad()
     def predict_confidence(self, x_tcn: torch.Tensor,
                             x_fft: torch.Tensor) -> tuple:
-        """Returns (detected: bool, confidence: float 0–1)"""
+        """Returns (detected: bool, confidence: float 0–1)
+
+        Borderline rule: if the raw softmax probability for class=1 is between
+        0.50 and 0.65 (inclusive) the prediction is treated as uncertain and
+        detected=False is returned.  Only prob > 0.65 counts as a real detection.
+        This prevents the model from accumulating votes on ambiguous frames.
+        """
         probs = torch.softmax(self.forward(x_tcn, x_fft), dim=-1)
         conf  = probs[0, 1].item()
-        return conf > 0.5, conf
+        # Do not count borderline predictions — only clear confidence triggers detected=True
+        detected = conf > 0.65
+        return detected, conf
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -622,6 +637,14 @@ class TCNInferenceEngine:
         )
         self.model.to(self.device).eval()
         print(f"[TCNInferenceEngine v2] Loaded from {model_path}")
+        # Window-size consistency check — warn if Config has been modified
+        if Config.WINDOW_SIZE != 64:
+            import warnings
+            warnings.warn(
+                f"[VitalRadar] Config.WINDOW_SIZE={Config.WINDOW_SIZE} but this model was "
+                f"trained on WINDOW_SIZE=64. Predictions will be incorrect.",
+                UserWarning, stacklevel=2
+            )
 
     def predict(self, distance_array: np.ndarray) -> tuple:
         """
