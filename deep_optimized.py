@@ -430,7 +430,7 @@ def run_sensor(sensor_id, port, tcn_engine, device):
                     continue
 
                 char = byte.decode("utf-8", errors="ignore")
-<<<<<<< HEAD
+
                 line_buf += char
 
                 if "\n" not in line_buf:
