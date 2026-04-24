@@ -20,8 +20,6 @@ const Dashboard = () => {
 
   if (isInitializing) return <SkeletonLoader />;
 
-  const leftSamples = history.slice(-12).map(h => h.left_confidence || 0);
-  const rightSamples = history.slice(-12).map(h => h.right_confidence || 0);
 
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
@@ -41,32 +39,7 @@ const Dashboard = () => {
             detected: latestData.left_detected,
             voting_window: latestData.voting_window,
           }}
-          samples={leftSamples}
-        />
-
-        {/* Center radar */}
-        <DirectionRing
-          direction={latestData.direction}
-          distance={latestData.distance}
-          freq={latestData.freq}
-          votes={latestData.votes}
-        />
-
-        {/* Right sensor */}
-        <SensorPanel
-          side="right"
-          name="S2"
-          colorPrefix="neon-coral"
-          data={{
-            distance: latestData.right_distance,
-            confidence: latestData.right_confidence,
-            freq: latestData.right_freq,
-            power: latestData.right_power,
-            votes: latestData.right_votes,
-            detected: latestData.right_detected,
-            voting_window: latestData.voting_window,
           }}
-          samples={rightSamples}
         />
       </div>
 
