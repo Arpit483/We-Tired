@@ -1,27 +1,10 @@
 import React from 'react';
 
-<<<<<<< HEAD
-// Mini bar chart for WAVEFORM_DELTA
-const WaveformDelta = ({ color, samples }) => {
-  const defaultHeights = [30, 50, 70, 45, 80, 55, 65, 40, 75, 60, 85, 50];
-  let heights;
-  if (samples && samples.length > 0) {
-    const mapped = samples.map(v => Math.min(100, Math.max(5, v * 100)));
-    if (mapped.length < 12) {
-      heights = [...Array(12 - mapped.length).fill(10), ...mapped];
-    } else {
-      heights = mapped.slice(-12);
-    }
-  } else {
-    heights = defaultHeights;
-  }
-=======
-// Real-time signal power indicator driven by actual sensor data
+// Real-time signal power bar driven by actual sensor data.
+// Normalises FFT peak_power (0–300+ range) to 0–100% for display.
 const WaveformDelta = ({ color, power }) => {
-  // Normalise: typical peak_power from FFT is 0-500+ units; cap at 300 for display
   const normalised = Math.min(1.0, (power || 0) / 300);
   const pct = (normalised * 100).toFixed(1);
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
   return (
     <div className="mt-3">
       <div className="flex items-center justify-between mb-1">
@@ -38,24 +21,22 @@ const WaveformDelta = ({ color, power }) => {
   );
 };
 
-const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
+const SensorPanel = ({ side, name, colorPrefix, data }) => {
   const isLeft = side === 'left';
   const color = colorPrefix === 'neon-lime' ? '#AAFF00' : '#FF5C5C';
   const colorClass = colorPrefix === 'neon-lime' ? 'text-[#AAFF00]' : 'text-[#FF5C5C]';
   const bgColorClass = colorPrefix === 'neon-lime' ? 'bg-[#AAFF00]' : 'bg-[#FF5C5C]';
 
-  const distance = data.distance || 0;
-  const confidence = data.confidence || 0;
-  const votes = data.votes || 0;
-  const detected = data.detected || false;
+  const distance    = data.distance    || 0;
+  const confidence  = data.confidence  || 0;
+  const votes       = data.votes       || 0;
+  const detected    = data.detected    || false;
   const votingWindow = data.voting_window || 32;
-  const freq = data.freq || 0;
-  const power = data.power || 0;
-<<<<<<< HEAD
+  const freq        = data.freq        || 0;
+  const power       = data.power       || 0;
 
-  const displayDist = (distance / 100).toFixed(2);
-=======
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
+  // distance already sent as metres from deep_optimized.py (divided by 100)
+  const displayDist = distance.toFixed(2);
 
   const orderClass = isLeft ? 'order-2 md:order-1' : 'order-3 md:order-3';
 
@@ -91,8 +72,10 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
             <span className="text-zinc-500 font-mono text-sm">/ {votingWindow}</span>
             <span className="text-zinc-600 font-mono text-[9px] ml-2 tracking-widest uppercase">SEGMENTED_VOTING</span>
           </div>
-          {/* Segmented bar */}
-          <div className={`grid grid-cols-10 gap-1 h-4 ${!isLeft ? 'direction-rtl' : ''}`} style={!isLeft ? { direction: 'rtl' } : {}}>
+          <div
+            className={`grid grid-cols-10 gap-1 h-4`}
+            style={!isLeft ? { direction: 'rtl' } : {}}
+          >
             {Array.from({ length: 10 }).map((_, i) => {
               const filled = i < Math.round((votes / votingWindow) * 10);
               return (
@@ -113,11 +96,7 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
         <div className={!isLeft ? 'text-right' : ''}>
           <div className="text-zinc-600 font-mono text-[9px] uppercase tracking-widest mb-1">Target_Distance</div>
           <div className={`${colorClass} font-mono text-4xl font-black leading-none`}>
-<<<<<<< HEAD
             {displayDist}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
-=======
-            {distance.toFixed(2)}<span className="text-zinc-500 text-base ml-1 font-normal">m</span>
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
           </div>
         </div>
 
@@ -135,13 +114,8 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* Waveform */}
-        <WaveformDelta color={color} samples={samples} />
-=======
         {/* Live signal power bar */}
         <WaveformDelta color={color} power={power} />
->>>>>>> 4a372cde23befc342d653dcd32f35055ae727494
 
         {/* Breathing status */}
         <div className="mt-auto">
@@ -163,18 +137,11 @@ const SensorPanel = ({ side, name, colorPrefix, data, samples }) => {
   );
 };
 
-export default React.memo(SensorPanel, (prev, next) => {
-  // Compare samples by length + last value to detect new waveform data
-  const samplesEqual =
-    prev.samples?.length === next.samples?.length &&
-    prev.samples?.[prev.samples.length - 1] === next.samples?.[next.samples.length - 1];
-  return (
-    prev.data.distance === next.data.distance &&
-    prev.data.confidence === next.data.confidence &&
-    prev.data.votes === next.data.votes &&
-    prev.data.detected === next.data.detected &&
-    prev.data.freq === next.data.freq &&
-    prev.data.power === next.data.power &&
-    samplesEqual
-  );
-});
+export default React.memo(SensorPanel, (prev, next) =>
+  prev.data.distance   === next.data.distance   &&
+  prev.data.confidence === next.data.confidence &&
+  prev.data.votes      === next.data.votes      &&
+  prev.data.detected   === next.data.detected   &&
+  prev.data.freq       === next.data.freq       &&
+  prev.data.power      === next.data.power
+);
